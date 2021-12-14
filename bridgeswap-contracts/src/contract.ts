@@ -1,7 +1,7 @@
 // adapted from bridge-vite
 
-import { accountBlock, constant } from "@vite/vitejs";
-import { ProviderType } from "@vite/vitejs/distSrc/utils/type";
+import { accountBlock, constant as viteConstant } from "@vite/vitejs";
+import { ViteAPI, ProviderType } from "@vite/vitejs/distSrc/utils/type";
 
 import { signAndSend } from './provider'
 import {
@@ -10,6 +10,8 @@ import {
   mine,
   accountHeight,
 } from './node'
+
+const { Contracts, Vite_TokenId } = viteConstant
 
 interface DeployProps {
   responseLatency?: Number
@@ -110,7 +112,92 @@ async function _awaitDeployConfirmed(
   return { send: receivedBlock, receive: confirmedBlock }
 }
 
+interface CallProps {
+  tokenId?: string
+  amount?: string // bignum?
+}
+
+class DeployedContract {
+  _address: string
+  _abi: Array<{ name: string; type: string }>
+  _offChainCode?: any
+  _provider: ViteAPI
+
+  constructor(
+    provider: ViteAPI,
+    address: string,
+    abi: Array<{ name: string; type: string }>,
+    code?: any
+  ) {
+    this._provider = provider
+    this._abi = abi
+    this._address = address
+    this._offChainCode = Buffer.from(code, 'hex').toString('base64')
+  }
+
+  async awaitCall(
+    sender: string,
+    senderKey: string,
+    methodName: string,
+    params: any[],
+    {
+      tokenId = Vite_TokenId,
+      amount = '0'
+    }: CallProps
+  ) {
+    const block = await this.call(sender, senderKey, methodName, params, {
+      tokenId,
+      amount
+    })
+    return await awaitReceived(this._provider, block.hash!)
+  }
+
+  async call(
+    sender: string,
+    senderKey: string,
+    methodName: string,
+    params: any[],
+    {
+      tokenId = Vite_TokenId,
+      amount = '0'
+    }: CallProps
+  ) {
+    const methodAbi = this._abi.find((x) => {
+      return x.name === methodName && x.type === 'function'
+    })
+    if (!methodAbi) {
+      throw new Error(`method not found: ${methodName}`)
+    }
+
+    const block = accountBlock.createAccountBlock('callContract', {
+      address: sender,
+      abi: methodAbi,
+      toAddress: this._address,
+      params: params,
+      tokenId: tokenId,
+      amount: amount
+    })
+    return signAndSend(this._provider, block, senderKey)
+  }
+
+  async callOffChain(methodName: string, params: any[]) {
+    const methodAbi = this._abi.find((x) => {
+      return x.type === 'offchain' && x.name === methodName
+    })
+    if (!methodAbi) {
+      throw new Error(`method not found: ${methodName}`)
+    }
+    return this._provider.callOffChainContract({
+      address: this._address,
+      abi: methodAbi,
+      code: this._offChainCode,
+      params: params
+    })
+  }
+}
+
 export { type DeployProps }
+export { DeployedContract }
 export const awaitDeploy = _awaitDeploy
 export const awaitDeployConfirmed = _awaitDeployConfirmed
 export const deploy = _deploy
