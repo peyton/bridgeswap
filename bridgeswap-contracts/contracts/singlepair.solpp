@@ -1,0 +1,37 @@
+pragma soliditypp >=0.4.3;
+
+import './interfaces/IBridgeswapV1Pair.solpp';
+
+contract SinglePair is IBridgeswapV1Pair {
+    // Invariants - 
+    // Symbol A < Symbol B (tbd method, maybe hash each token ID)
+
+    event Initialize();
+
+    bytes32 name = "Bridgeswap SinglePair";
+    uint256 decimals = 18;
+
+    tokenId tokenA;
+    tokenId tokenB;
+
+    uint256 supplyA = 0;
+    uint256 supplyB = 0;
+
+    mapping(address => uint256) poolBalanceA;
+    mapping(address => uint256) poolBalanceB;
+
+    address owner; 
+
+    address factory; // TODO will hold factory address
+
+    getter supportedTokens()returns (tokenId, tokenId) {
+        return (tokenA, tokenB);
+    }
+
+    onMessage initialize(tokenId _tokenA, tokenId _tokenB) payable {
+        require(tokenA == tokenId(0) && tokenB == tokenId(0));
+        tokenA = _tokenA;
+        tokenB = _tokenB;
+    }
+
+}
