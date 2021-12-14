@@ -1,9 +1,19 @@
 // adapted from bridge-vite
 
 import { accountBlock, constant } from "@vite/vitejs";
+import { ProviderType } from "@vite/vitejs/distSrc/utils/type";
 
-async function deploy(
-  provider: string,
+import { signAndSend } from './provider'
+import {
+  awaitConfirmed,
+  awaitReceived,
+  mine,
+  accountHeight,
+} from './node'
+
+
+async function _deploy(
+  provider: ProviderType,
   address: string,
   key: string,
   abi: Object | Array<Object>,
@@ -21,8 +31,14 @@ async function deploy(
   }
 ) {
   const block = accountBlock.createAccountBlock('createContract', {
-    
+    abi: abi,
+    code: code,
+    quotaMultiplier: quotaMultiplier,
+    randomDegree: randomDegree,
+    responseLatency: responseLatency,
+    params: params,
+    address: address
   })
 }
 
-function awaitDeploy
+export const deploy = _deploy

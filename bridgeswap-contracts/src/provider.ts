@@ -1,6 +1,7 @@
 // adapted from bridge-vite
 
 import { ViteAPI } from '@vite/vitejs'
+import { AccountBlockClassType, ProviderType } from '@vite/vitejs/distSrc/utils/type'
 const { HTTP_RPC } = require('@vite/vitejs-http')
 
 function _newProvider(url: string) {
@@ -10,8 +11,8 @@ function _newProvider(url: string) {
 }
 
 async function _signAndSend(
-  provider: any,
-  block: any,
+  provider: ProviderType,
+  block: AccountBlockClassType,
   privateKey: string
 ) {
   block.setProvider(provider).setPrivateKey(privateKey)
