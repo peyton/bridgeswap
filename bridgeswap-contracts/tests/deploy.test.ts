@@ -37,7 +37,7 @@ describe('deploy test', () => {
     await mine(provider);
     const confirmedBlock = await awaitConfirmed(provider, receivedBlock.receiveBlockHash!)
     expect(confirmedBlock).is.not.null
-  }).timeout(10000)
+  }).timeout(20000)
 
   it('await deploy succeeds', async () => {
     const mineResult = mine(provider);
@@ -54,7 +54,7 @@ describe('deploy test', () => {
       { params: ['tti_5649544520544f4b454e6e40'] }
     );
     expect(sendBlock).is.not.null
-  }).timeout(10000)
+  }).timeout(20000)
 
   it('await and confirm deploy succeeds', async () => {
     const mineResult = mine(provider)
@@ -73,5 +73,5 @@ describe('deploy test', () => {
 
     expect(sendBlock).is.not.null
     expect(receiveBlock).is.not.null
-  }).timeout(10000)
+  }).timeout(20000)
 })
