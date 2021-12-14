@@ -16,6 +16,6 @@ docker run -p 127.0.0.1:48132:48132 --rm vitelabs/gvite-nightly:v2.11.1-latest v
 
 `yarn accounts`
 
-### Run tests individually
+### Run tests
 
-`yarn test tests/call.test.ts`
+`yarn test`
