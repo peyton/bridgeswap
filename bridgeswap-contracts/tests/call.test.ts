@@ -1,5 +1,5 @@
 // adapted from bridge-vite
-
+/*
 import { describe } from "mocha";
 import { expect } from "chai";
 import {
@@ -48,3 +48,5 @@ describe("call test", () => {
     expect(lastToResult![0]).equal(accounts[0].address);
   }).timeout(10000);
 });
+
+*/
