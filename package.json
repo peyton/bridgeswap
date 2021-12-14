@@ -1,0 +1,16 @@
+{
+  "name": "bridgeswap",
+  "private": true,
+  "description": "Uniswap V1-like AMM using Vite Bridge",
+  "version": "1.0.0",
+  "homepage": "https://github.com/peyton/bridgeswap",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/peyton/bridgeswap"
+  },
+  "workspaces": [
+    "bridgeswap-contracts",
+    "bridgeswap-frontend"
+  ],
+  "license": "Unlicense"
+}
