@@ -17,7 +17,7 @@ import { compile } from '../src/compile'
 const provider = newProvider(config.networks.local.url)
 
 describe('deploy test', () => {
-  it('checks deploy succeeds', async () => {
+  it('deploy succeeds', async () => {
     const mineResult = mine(provider)
     const compileResult = await compile('Hello.solpp')
     await mineResult
@@ -32,17 +32,14 @@ describe('deploy test', () => {
       compileResult.byteCodes[0],
       { params: ['tti_5649544520544f4b454e6e40'] }
     );
-    console.log('------', deployResult)
-    const receivedBlock = await awaitReceived(provider, deployResult.hash)
+    const receivedBlock = await awaitReceived(provider, deployResult.hash!)
     expect(receivedBlock).is.not.null
-    console.log('+++++++', receivedBlock)
     await mine(provider);
-    const confirmedBlock = await awaitConfirmed(provider, receivedBlock.receiveBlockHash)
+    const confirmedBlock = await awaitConfirmed(provider, receivedBlock.receiveBlockHash!)
     expect(confirmedBlock).is.not.null
-    console.log('*******', confirmedBlock)
   }).timeout(10000)
 
-  it('checks await deploy succeeds', async () => {
+  it('await deploy succeeds', async () => {
     const mineResult = mine(provider);
     const compileResult = await compile('Hello.solpp');
     await mineResult;
@@ -57,10 +54,9 @@ describe('deploy test', () => {
       { params: ['tti_5649544520544f4b454e6e40'] }
     );
     expect(sendBlock).is.not.null
-    console.log('------', sendBlock)
   }).timeout(10000)
 
-  it('checks await and confirm deploy succeeds', async () => {
+  it('await and confirm deploy succeeds', async () => {
     const mineResult = mine(provider)
     const compileResult = await compile('Hello.solpp')
     await mineResult;
@@ -77,5 +73,5 @@ describe('deploy test', () => {
 
     expect(sendBlock).is.not.null
     expect(receiveBlock).is.not.null
-  })
+  }).timeout(10000)
 })
