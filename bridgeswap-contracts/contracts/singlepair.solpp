@@ -34,4 +34,26 @@ contract SinglePair is IBridgeswapV1Pair {
         tokenB = _tokenB;
     }
 
+    // @dev Pricing function for converting between token A and token B
+    // @param input_amount Amount of token A or token B being sold.
+    // @param input_reserve Amount of token A or token B (input type) in exchange reserves.
+    // @param output_reserve Amount of token A or token B (output type) in exchange reserves.
+    // @return Amount of token A or token B bought.
+    function getInputPrice(uint256 input_amount, uint256 input_reserve, uint256 output_reserve) private returns (uint256) {
+        uint256 input_amount_with_fee = input_amount * 997;
+        uint256 numerator = input_amount_with_fee * output_reserve;
+        uint256 denominator = (input_reserve * 1000) + input_amount_with_fee;
+        return numerator / denominator;
+    }
+
+    // @dev Pricing function for converting between token A and token B.
+    // @param output_amount Amount of token A or token B being bought.
+    // @param input_reserve Amount of token A or token B (input type) in exchange reserves.
+    // @param output_reserve Amount of token A or token B (output type) in exchange reserves.
+    // @return Amount of token A or token B sold.
+    function getOutputPrice(uint256 output_amount, uint256 input_reserve, uint256 output_reserve) private returns (uint256) {
+        uint256 numerator = input_reserve * output_amount * 1000;
+        uint256 denominator = (output_reserve - output_amount) * 997;
+        return numerator / denominator + 1;
+    }
 }
