@@ -2,9 +2,12 @@
 
 // adapted from bridge-vite
 
-import Provider from "@vite/vitejs/distSrc/viteAPI/provider";
+import { ProviderType } from "@vite/vitejs/distSrc/utils/type"
 
-export async function mint(provider: any) {
-  await sleep(1000);
+async function _mine(provider: ProviderType) {
+  await sleep(1000)
   return provider.request("miner_mine");
 }
+
+export const mine = _mine
+
