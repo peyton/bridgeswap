@@ -1,12 +1,12 @@
 pragma soliditypp >=0.4.3;
 
-import './interfaces/IBridgeswapV1Pair.solpp';
+//import './interfaces/IBridgeswapV1Pair.solpp';
 
-contract SinglePair is IBridgeswapV1Pair {
+contract SinglePair {
     // Invariants - 
     // Symbol A < Symbol B (tbd method, maybe hash each token ID)
 
-    event Initialize();
+    tokenId constant ZERO_TOKEN_ID = tokenId("tti_000000000000000000004cfd");
 
     bytes32 name = "Bridgeswap SinglePair";
     uint256 decimals = 18;
@@ -28,8 +28,8 @@ contract SinglePair is IBridgeswapV1Pair {
         return (tokenA, tokenB);
     }
 
-    onMessage initialize(tokenId _tokenA, tokenId _tokenB) payable {
-        require(tokenA == tokenId(0) && tokenB == tokenId(0));
+    onMessage initialize(tokenId _tokenA, tokenId _tokenB) {
+        require(tokenA == ZERO_TOKEN_ID && tokenB == ZERO_TOKEN_ID && tokenA != tokenB);
         tokenA = _tokenA;
         tokenB = _tokenB;
     }
