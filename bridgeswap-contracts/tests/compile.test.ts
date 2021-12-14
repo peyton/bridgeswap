@@ -1,3 +1,5 @@
+// adapted from bridge-vite
+
 import { describe } from 'mocha'
 import { expect } from 'chai'
 import { compile, version } from '../src/compile'
