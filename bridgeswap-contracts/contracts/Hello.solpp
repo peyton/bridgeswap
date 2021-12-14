@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: Unlicense
+
+pragma soliditypp >=0.4.3;
+
+contract Hello {
+  event HelloLog(address indexed src, address indexed dest, uint256 amount);
+
+  tokenId _tid;
+  address public lastTo;
+
+  constructor(tokenId tid) public {
+    _tid = tid;
+  }
+
+  onMessage hello(address dest) payable {
+    dest.transfer(_tid, msg.amount);
+    lastTo = dest;
+    emit HelloLog(msg.sender, dest, msg.amount);
+  }
+}

@@ -9,8 +9,8 @@
     "url": "https://github.com/peyton/bridgeswap"
   },
   "workspaces": [
-    "bridgeswap-frontend",
-    "contracts"
+    "bridgeswap-contracts",
+    "bridgeswap-frontend"
   ],
   "license": "Unlicense"
 }

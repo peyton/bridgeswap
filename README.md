@@ -2,10 +2,10 @@
 
 ## Packages
 
+### bridgeswap-contracts
+
+Smart contracts powering Bridgeswap
+
 ### bridgeswap-frontend
 
 Frontend for the Bridgeswap Dapp
-
-### Contracts
-
-Smart contracts powering Bridgeswap
