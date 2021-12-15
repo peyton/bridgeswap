@@ -1,5 +1,5 @@
 import { describe } from "mocha";
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import {
   DeployedContract,
   awaitDeployConfirmed,
@@ -21,7 +21,7 @@ describe("liquidity pool test", () => {
     const result = await compile("singlepair.solpp")
     await mineResult
 
-    expect(result.abis.length > 0)
+    expect(result.abis).to.be.not.empty
 
     const account = accounts[0]
 
@@ -99,5 +99,9 @@ describe("liquidity pool test", () => {
     expect(pairsupply![0]).equal('0');
     expect(pairsupply![1]).equal('0');
 
+  }).timeout(40000)
+
+  it("liquidity pool swaps unbalanced deposit on addLiquidity", async () => {
+    assert.fail()
   }).timeout(40000)
 })

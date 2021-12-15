@@ -53,7 +53,7 @@ contract SinglePair {
         tokenB = _tokenB;
     }
 
-    getter isinitialized()returns (bool) {
+    getter isInitialized() returns (bool) {
         return initialized;
     }
 
