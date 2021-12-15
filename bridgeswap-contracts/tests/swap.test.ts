@@ -14,7 +14,7 @@ import { compile } from "../src/compile";
 import { newProvider } from "../src/provider";
 import { 
   type TokenInfo,
-  issueToken,
+  awaitIssueTokenConfirmed,
   listTokensOwnedByAddress
 } from '../src/token'
 import { type CompileResult } from '../src/solppc'
@@ -58,14 +58,14 @@ describe("swap test", function() {
     )
 
     autoReceive(provider, firstAccount.address, firstAccount.privateKey); // If this is not started, tokens will not actually be received - MUST run
-    await issueToken(
+    await awaitIssueTokenConfirmed(
       provider,
       firstAccount.address,
       firstAccount.privateKey,
       "TOKENONE",
       "TO"
     )
-    await issueToken(
+    await awaitIssueTokenConfirmed(
       provider,
       firstAccount.address,
       firstAccount.privateKey,
@@ -79,7 +79,7 @@ describe("swap test", function() {
     let tokenIdA;
     let tokenIdB;
     const tokenlist: [TokenInfo] = await listTokensOwnedByAddress(provider, firstAccount.address)
-    for (let { tokenId, tokenSymbol } of tokenlist) {
+    for (let { tokenId, tokenSymbol } of tokenlist.reverse()) {
       if (tokenSymbol === "TT") {
         tokenIdB = tokenId;
       }
