@@ -12,9 +12,10 @@ import config from '../src/vitejs.config.json'
 import { compile } from "../src/compile";
 import { newProvider } from "../src/provider";
 
-const provider = newProvider(config.networks.local.url)
 
 describe("call test", () => {
+  const provider = newProvider(config.networks.local.url)
+
   it("await call result succeeds", async () => {
     const mineResult = mine(provider)
     const result = await compile("Hello.solpp")

@@ -13,9 +13,9 @@ import { compile } from "../src/compile";
 import { newProvider } from '../src/provider';
 import { type TokenInfo, listTokensOwnedByAddress } from '../src/token'
 
-const provider = newProvider(config.networks.local.url)
-
 describe("liquidity pool test", () => {
+  const provider = newProvider(config.networks.local.url)
+
   it("open a liquidity pool", async () => {
     const mineResult = mine(provider)
     const result = await compile("singlepair.solpp")
@@ -104,7 +104,5 @@ describe("liquidity pool test", () => {
 
   }).timeout(40000)
 
-  it("liquidity pool swaps unbalanced deposit on addLiquidity", async () => {
-    assert.fail()
-  }).timeout(40000)
+  it('liquidity pool swaps unbalanced deposit on addLiquidity')
 })

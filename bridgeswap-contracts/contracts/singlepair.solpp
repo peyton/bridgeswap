@@ -34,7 +34,7 @@ contract SinglePair {
     event Withdrawal(
         address indexed provider,
         tokenId indexed tokenid,
-        uint256 amount
+        uint256 amounta
     );
 
     tokenId constant ZERO_TOKEN_ID = tokenId("tti_000000000000000000004cfd");

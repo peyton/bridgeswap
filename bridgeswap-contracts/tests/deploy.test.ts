@@ -14,9 +14,10 @@ import accounts from '../src/accounts'
 import { newProvider } from '../src/provider'
 import { compile } from '../src/compile'
 
-const provider = newProvider(config.networks.local.url)
 
 describe('deploy test', () => {
+  const provider = newProvider(config.networks.local.url)
+
   it('deploy succeeds', async () => {
     const mineResult = mine(provider)
     const compileResult = await compile('Hello.solpp')
