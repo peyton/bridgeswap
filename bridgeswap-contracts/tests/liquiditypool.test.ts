@@ -53,8 +53,12 @@ describe("liquidity pool test", () => {
       account.privateKey,
       result.abis[0],
       result.byteCodes[0],
-      {}
+      {
+        responseLatency: 1
+      }
     );
+
+    await mine(provider)
 
     expect(send).is.not.null
     expect(receive).is.not.null
@@ -67,7 +71,6 @@ describe("liquidity pool test", () => {
     );
 
     await contract.awaitCall(account.address, account.privateKey, 'initialize', [tokenIdA, tokenIdB], {})
-
     await mine(provider)
     await mine(provider)
     const tokenAResult = await contract.callOffChain('supportedTokens', [])

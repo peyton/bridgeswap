@@ -53,14 +53,14 @@ async function _isReceived(provider: ProviderType, hash: string) {
 
 async function _awaitConfirmed(provider: ProviderType, hash: string) {
   while (!(await _isConfirmed(provider, hash))) {
-    await sleep(1000)
+    await _mine(provider)
   }
   return await _accountBlockByHash(provider, hash)
 }
 
 async function _awaitReceived(provider: ProviderType, hash: string) {
   while (!(await _isReceived(provider, hash))) {
-    await sleep(1000)
+    await _mine(provider)
   }
   return await _accountBlockByHash(provider, hash)
 }
