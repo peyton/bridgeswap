@@ -39,7 +39,6 @@ describe("single pair test", () => {
     let tokenIdA;
     let tokenIdB;
 
-    console.log(tokenlist)
     for (let tltoken of tokenlist) {
       let symbol = tltoken.tokenSymbol;
       if (symbol === "TT") {
@@ -49,9 +48,7 @@ describe("single pair test", () => {
         tokenIdA = tltoken.tokenId;
       }
     }
-    console.log(tokenIdA, tokenIdB);
     const balanceInfo = await provider.getBalanceInfo(account.address);
-    console.log(balanceInfo);
 
     const { send, receive } = await awaitDeployConfirmed(
       provider,
@@ -85,11 +82,9 @@ describe("single pair test", () => {
     const depresponse = await contract.awaitCall(account.address, account.privateKey, 'deposit', [], { tokenId: tokenIdB, amount: '1' });
     await mine(provider)
     await mine(provider)
-    console.log(depresponse)
     const response = await contract.awaitCall(account.address, account.privateKey, 'addLiquidity', [1, 1], {});
     await mine(provider)
     await mine(provider)
-    console.log(response)
     let banksupply = await contract.callOffChain('getBalanceAddressToken', [account.address, tokenIdA]);
     expect(banksupply).to.not.be.null
     expect(banksupply![0]).equal('0');
