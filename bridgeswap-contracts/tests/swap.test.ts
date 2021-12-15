@@ -203,6 +203,10 @@ describe("swap test", function() {
     await mine(provider)
     await mine(provider)
     await mine(provider)
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
 
     const { balance: finalBalances } = await provider.getBalanceInfo(firstAccount.address)
 
@@ -308,6 +312,10 @@ describe("swap test", function() {
       { tokenId: tokenIdA, amount: '2000000000000000000' }
     )
 
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
     await mine(provider)
     await mine(provider)
     await mine(provider)
