@@ -13,6 +13,7 @@ contract SinglePair {
 
     tokenId tokenA;
     tokenId tokenB;
+    bool initialized = false;
 
     uint256 supplyA = 0;
     uint256 supplyB = 0;
@@ -29,7 +30,8 @@ contract SinglePair {
     }
 
     onMessage initialize(tokenId _tokenA, tokenId _tokenB) {
-        require(tokenA == ZERO_TOKEN_ID && tokenB == ZERO_TOKEN_ID && tokenA != tokenB);
+        require(!initialized);
+        initialized = true;
         tokenA = _tokenA;
         tokenB = _tokenB;
     }

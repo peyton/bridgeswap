@@ -9,6 +9,12 @@
       "request": "launch",
       "name": "Soliditypp Debug",
       "program": "${file}"
-    }
+    },
+    {
+      "name": "Debug yarn test",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "yarn test"
+    },
   ]
 }

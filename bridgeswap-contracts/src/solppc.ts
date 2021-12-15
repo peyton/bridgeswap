@@ -41,7 +41,6 @@ function _parseCompileOutput(output: string): CompileResult {
     byteCodes: [],
     offChainCodes: []
   }
-  console.log(output)
   let lines = output.split(os.EOL);
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i]
