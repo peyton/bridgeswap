@@ -13,7 +13,7 @@ import { compile } from "../src/compile";
 import { newProvider } from '../src/provider';
 import { 
   type TokenInfo,
-  issueToken,
+  awaitIssueTokenConfirmed,
   listTokensOwnedByAddress 
 } from '../src/token'
 
@@ -34,8 +34,8 @@ describe("liquidity pool test", () => {
     const account = accounts[0]
 
     autoReceive(provider, account.address, account.privateKey); // If this is not started, tokens will not actually be received - MUST run
-    const t1result = await issueToken(provider, account.address, account.privateKey, "TOKENONE", "TO");
-    const t2result = await issueToken(provider, account.address, account.privateKey, "TOKENTWO", "TT");
+    await awaitIssueTokenConfirmed(provider, account.address, account.privateKey, "TOKENONE", "TO");
+    await awaitIssueTokenConfirmed(provider, account.address, account.privateKey, "TOKENTWO", "TT");
 
     await mine(provider)
     await mine(provider)
@@ -45,7 +45,7 @@ describe("liquidity pool test", () => {
 
     let tokenIdA;
     let tokenIdB;
-    for (let { tokenId, tokenSymbol } of tokenlist) {
+    for (let { tokenId, tokenSymbol } of tokenlist.reverse()) {
       if (tokenSymbol === "TT") {
         tokenIdB = tokenId;
       }

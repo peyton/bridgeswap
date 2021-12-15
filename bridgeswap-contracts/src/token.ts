@@ -1,5 +1,6 @@
 import { accountBlock } from '@vite/vitejs'
 import { ProviderType } from '@vite/vitejs/distSrc/utils/type'
+import { awaitConfirmed, awaitReceived, mine } from './node'
 
 import { signAndSend } from './provider'
 
@@ -19,8 +20,8 @@ async function _issueToken(
   tokenName: string,
   tokenSymbol: string,
   decimals = 2,
-  maxSupply = "10000000000000000000000",
-  totalSupply = "100000000000000000000",
+  maxSupply = "1000000000000000000000000",
+  totalSupply = "10000000000000000000000",
   isReIssuable = true,
   isOwnerBurnOnly = false,
 ) {
@@ -37,6 +38,37 @@ async function _issueToken(
   return signAndSend(provider, block, key)
 }
 
+async function _awaitIssueTokenConfirmed(
+  provider: ProviderType,
+  address: string,
+  key: string,
+  tokenName: string,
+  tokenSymbol: string,
+  decimals = 2,
+  maxSupply = '1000000000000000000000000',
+  totalSupply = '10000000000000000000000',
+  isReIssuable = true,
+  isOwnerBurnOnly = false,
+) {
+  const issueResult = await _issueToken(
+    provider,
+    address,
+    key,
+    tokenName,
+    tokenSymbol,
+    decimals,
+    maxSupply,
+    totalSupply,
+    isReIssuable,
+    isOwnerBurnOnly
+  )
+  const receivedBlock = await awaitReceived(provider, issueResult.hash!)
+  await mine(provider)
+  const confirmedBlock = await awaitConfirmed(provider, receivedBlock.receiveBlockHash!)
+  return { send: receivedBlock, receive: confirmedBlock }
+}
+
 export { type TokenInfo }
-export const listTokensOwnedByAddress = _listTokensOwnedByAddress
+export const awaitIssueTokenConfirmed = _awaitIssueTokenConfirmed
 export const issueToken = _issueToken
+export const listTokensOwnedByAddress = _listTokensOwnedByAddress

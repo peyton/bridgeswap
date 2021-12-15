@@ -5,9 +5,7 @@ import { AccountBlockClassType, ProviderType } from '@vite/vitejs/distSrc/utils/
 const { HTTP_RPC } = require('@vite/vitejs-http')
 
 function _newProvider(url: string) {
-  return new ViteAPI(new HTTP_RPC(url), () => {
-    console.log('Provider connected')
-  })
+  return new ViteAPI(new HTTP_RPC(url), () => {})
 }
 
 async function _signAndSend(
