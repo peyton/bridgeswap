@@ -1,6 +1,0 @@
-// SPDX-License-Identifier: Unlicense
-pragma soliditypp >=0.4.3;
-
-interface IBridgeswapV1Pair {
-    onMessage initialize(tokenId, tokenId) payable;
-}

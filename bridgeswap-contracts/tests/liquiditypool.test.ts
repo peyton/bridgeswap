@@ -1,31 +1,27 @@
 import { describe } from "mocha";
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import {
   DeployedContract,
   awaitDeployConfirmed,
   issueToken,
   autoReceive
 } from "../src/contract";
-import { awaitReceived, mine } from "../src/node";
+import { mine } from "../src/node";
 import accounts from "../src/accounts";
 import config from '../src/vitejs.config.json'
 import { compile } from "../src/compile";
-import { newProvider } from "../src/provider";
+import { newProvider } from '../src/provider';
+import { type TokenInfo, listTokensOwnedByAddress } from '../src/token'
 
 const provider = newProvider(config.networks.local.url)
 
-interface TokenInfo {
-  tokenSymbol: string,
-  tokenId: string
-}
-
-describe("single pair test", () => {
+describe("liquidity pool test", () => {
   it("open a liquidity pool", async () => {
     const mineResult = mine(provider)
     const result = await compile("singlepair.solpp")
     await mineResult
 
-    expect(result.abis.length > 0)
+    expect(result.abis).to.be.not.empty
 
     const account = accounts[0]
 
@@ -35,23 +31,21 @@ describe("single pair test", () => {
 
     await mine(provider)
     await mine(provider)
-    const tokenlist: [TokenInfo] = await provider.request('contract_getTokenInfoListByOwner', account.address)
+    const tokenlist: [TokenInfo] = await listTokensOwnedByAddress(provider, account.address)
+    // expect(tokenlist).to.deep.include({tokenSymbol: "TT"})
+    // expect(tokenlist).to.deep.include({tokenSymbol: "TO"})
+
     let tokenIdA;
     let tokenIdB;
-
-    console.log(tokenlist)
-    for (let tltoken of tokenlist) {
-      let symbol = tltoken.tokenSymbol;
-      if (symbol === "TT") {
-        tokenIdB = tltoken.tokenId;
+    for (let { tokenId, tokenSymbol } of tokenlist) {
+      if (tokenSymbol === "TT") {
+        tokenIdB = tokenId;
       }
-      if (symbol === "TO") {
-        tokenIdA = tltoken.tokenId;
+      if (tokenSymbol === "TO") {
+        tokenIdA = tokenId;
       }
     }
-    console.log(tokenIdA, tokenIdB);
     const balanceInfo = await provider.getBalanceInfo(account.address);
-    console.log(balanceInfo);
 
     const { send, receive } = await awaitDeployConfirmed(
       provider,
@@ -85,11 +79,9 @@ describe("single pair test", () => {
     const depresponse = await contract.awaitCall(account.address, account.privateKey, 'deposit', [], { tokenId: tokenIdB, amount: '1' });
     await mine(provider)
     await mine(provider)
-    console.log(depresponse)
     const response = await contract.awaitCall(account.address, account.privateKey, 'addLiquidity', [1, 1], {});
     await mine(provider)
     await mine(provider)
-    console.log(response)
     let banksupply = await contract.callOffChain('getBalanceAddressToken', [account.address, tokenIdA]);
     expect(banksupply).to.not.be.null
     expect(banksupply![0]).equal('0');
@@ -107,5 +99,9 @@ describe("single pair test", () => {
     expect(pairsupply![0]).equal('0');
     expect(pairsupply![1]).equal('0');
 
-  }).timeout(20000)
+  }).timeout(40000)
+
+  it("liquidity pool swaps unbalanced deposit on addLiquidity", async () => {
+    assert.fail()
+  }).timeout(40000)
 })

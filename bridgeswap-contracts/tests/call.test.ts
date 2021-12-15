@@ -45,6 +45,8 @@ describe("call test", () => {
         await awaitReceived(provider, block.hash!)
       })
 
+    await mine(provider)
+    await mine(provider)
     const lastToResult = await contract.callOffChain('lastTo', [])
     expect(lastToResult).to.not.be.null
     expect(lastToResult!.length).equal(1)
