@@ -21,10 +21,11 @@ contract SinglePair {
     mapping(address => uint256) poolBalanceA;
     mapping(address => uint256) poolBalanceB;
 
-    address owner; 
+    struct BankAccount { // Idk if we need the struct here, maybe there is more we can pack in here in the future though
+        mapping(tokenId => uint256) account;
+    }
 
-    address factory; // TODO will hold factory address
-
+    mapping(address => BankAccount) bankAccounts;
     getter supportedTokens()returns (tokenId, tokenId) {
         return (tokenA, tokenB);
     }
@@ -34,6 +35,10 @@ contract SinglePair {
         initialized = true;
         tokenA = _tokenA;
         tokenB = _tokenB;
+    }
+
+    getter isinitialized()returns (bool) {
+        return initialized;
     }
 
     // @dev Pricing function for converting between token A and token B
@@ -57,5 +62,55 @@ contract SinglePair {
         uint256 numerator = input_reserve * output_amount * 1000;
         uint256 denominator = (output_reserve - output_amount) * 997;
         return numerator / denominator + 1;
+    }
+
+    getter tokenBalance(address addr, tokenId token)returns (uint256) {
+        return bankAccounts[addr].account[token];
+    }
+
+    onMessage deposit() payable {
+        bankAccounts[msg.sender].account[msg.tokenid]+=msg.amount; 
+    }
+
+    onMessage withdraw(uint256 amount, tokenId token) {
+        uint256 balance = bankAccounts[msg.sender].account[token];
+        require(amount <= balance);
+        bankAccounts[msg.sender].account[token] = balance - amount;
+        msg.sender.transfer(token, amount);
+    }
+
+    onMessage addLiquidity(uint256 amountTokenA, uint256 amountTokenB) {
+        // TODO: Need to implement swap fee 
+        uint256 balanceA = bankAccounts[msg.sender].account[tokenA];
+        uint256 balanceB = bankAccounts[msg.sender].account[tokenB];
+
+        require((amountTokenA <= balanceA) && (amountTokenB <= balanceB));
+        // Update pool balances
+        poolBalanceA[msg.sender] += amountTokenA;
+        poolBalanceB[msg.sender] += amountTokenB;
+
+        // Remove amounts from bank balance
+        bankAccounts[msg.sender].account[tokenA] = balanceA - amountTokenA;
+        bankAccounts[msg.sender].account[tokenB] = balanceB - amountTokenB;
+
+        // Increment overall supply
+        supplyA += amountTokenA;
+        supplyB += amountTokenB;
+    }
+
+    onMessage removeLiquidity(uint256 amountTokenA, uint256 amountTokenB) {
+        require((amountTokenA <= poolBalanceA[msg.sender]) && (amountTokenB <= poolBalanceB[msg.sender]));
+
+        // Remove from pool
+        poolBalanceA[msg.sender] -= amountTokenA;
+        poolBalanceB[msg.sender] -= amountTokenB;
+
+        // Remove from supply
+        supplyA -= amountTokenA;
+        supplyB -= amountTokenB;
+
+        // Return tokens to wallet
+        msg.sender.transfer(tokenA, amountTokenA);
+        msg.sender.transfer(tokenB, amountTokenB);
     }
 }
