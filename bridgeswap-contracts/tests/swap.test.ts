@@ -6,7 +6,7 @@ import {
   issueToken,
   autoReceive
 } from "../src/contract";
-import { awaitReceived, mine } from "../src/node";
+import { mine } from "../src/node";
 import accounts from "../src/accounts";
 import config from '../src/vitejs.config.json'
 import { compile } from "../src/compile";
@@ -19,7 +19,7 @@ interface TokenInfo {
   tokenId: string
 }
 
-describe("single pair test", () => {
+describe("liquidity pool test", () => {
   it("open a liquidity pool", async () => {
     const mineResult = mine(provider)
     const result = await compile("singlepair.solpp")

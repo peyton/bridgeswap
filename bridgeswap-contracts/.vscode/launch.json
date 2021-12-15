@@ -16,5 +16,11 @@
       "request": "launch",
       "command": "yarn test"
     },
+    {
+      "name": "Debug single yarn test",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "yarn test:file ${file}"
+    },
   ]
 }
