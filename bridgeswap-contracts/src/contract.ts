@@ -77,31 +77,6 @@ async function _autoReceive(
   });
 }
 
-async function _issueToken(
-  provider: ProviderType,
-  address: string,
-  key: string,
-  tokenName: string,
-  tokenSymbol: string,
-  decimals = 2,
-  maxSupply = "100000000000000000000",
-  totalSupply = "1000000000000000000",
-  isReIssuable = true,
-  isOwnerBurnOnly = false,
-) {
-  const block = accountBlock.createAccountBlock('issueToken', {
-    address: address,
-    tokenName: tokenName,
-    isReIssuable: isReIssuable,
-    maxSupply: maxSupply,
-    isOwnerBurnOnly: isOwnerBurnOnly,
-    totalSupply: totalSupply,
-    decimals: decimals,
-    tokenSymbol: tokenSymbol
-  })
-  return signAndSend(provider, block, key)
-}
-
 async function _awaitDeploy(
   provider: ProviderType,
   address: string,
@@ -191,7 +166,7 @@ class DeployedContract {
       tokenId,
       amount
     })
-    return await awaitReceived(this._provider, block.hash!)
+    return await awaitConfirmed(this._provider, block.hash!)
   }
 
   async call(
@@ -238,10 +213,9 @@ class DeployedContract {
   }
 }
 
-export { type DeployProps }
+export { type CallProps, type DeployProps }
 export { DeployedContract }
 export const awaitDeploy = _awaitDeploy
 export const awaitDeployConfirmed = _awaitDeployConfirmed
-export const deploy = _deploy
-export const issueToken = _issueToken
 export const autoReceive = _autoReceive
+export const deploy = _deploy

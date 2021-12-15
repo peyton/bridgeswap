@@ -7,7 +7,7 @@ import { AccountBlockClassType, AccountBlockType, ProviderType } from "@vite/vit
 import { sleep } from './utils'
 
 async function _mine(provider: ProviderType) {
-  await sleep(1000)
+  await sleep(200)
   return provider.request("miner_mine");
 }
 

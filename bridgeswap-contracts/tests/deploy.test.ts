@@ -1,5 +1,6 @@
 // adapted from bridge-vite
 
+import { ViteAPI } from '@vite/vitejs/distSrc/utils/type'
 import { describe } from 'mocha'
 import { expect } from 'chai'
 
@@ -14,9 +15,14 @@ import accounts from '../src/accounts'
 import { newProvider } from '../src/provider'
 import { compile } from '../src/compile'
 
-const provider = newProvider(config.networks.local.url)
 
 describe('deploy test', () => {
+  let provider: ViteAPI
+
+  before('create provider', () => {
+    provider = newProvider(config.networks.local.url)
+  })
+
   it('deploy succeeds', async () => {
     const mineResult = mine(provider)
     const compileResult = await compile('Hello.solpp')

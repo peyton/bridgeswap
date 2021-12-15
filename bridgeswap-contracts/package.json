@@ -29,8 +29,7 @@
     "lint": "yarn prettier ./**/*.ts --check",
     "lint:fix": "yarn prettier ./**/*.ts --write",
     "clean": "rimraf ./build/",
-    "test": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && ./node_modules/.bin/mocha -r ts-node/register tests/**/*.test.ts",
-    "test:file": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && ./node_modules/.bin/mocha -r ts-node/register "
+    "test": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && mocha"
   },
   "dependencies": {}
 }

@@ -20,7 +20,6 @@ interface CompileResult {
 
 async function _compile(filename: string): Promise<CompileResult> {
   const baseDir = compiler.sourceDir
-  console.log(`docker run --rm -v ${baseDir}:/root/tmp/contracts ${_getDockerImageString()} --bin --abi /root/tmp/contracts/${filename}`)
   const output = await dockerRun(
     _getDockerImageString(),
     ["--bin", "--abi", `/root/tmp/contracts/${filename}`],
@@ -83,5 +82,6 @@ function _parseVersionOutput(output: string): string {
   return "Unknown version"
 }
 
+export { type CompileResult }
 export const compile = _compile
 export const version = _version

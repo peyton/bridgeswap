@@ -1,5 +1,6 @@
 // adapted from bridge-vite
 
+import { ViteAPI } from '@vite/vitejs/distSrc/utils/type'
 import { describe } from "mocha";
 import { expect } from "chai";
 import {
@@ -12,9 +13,14 @@ import config from '../src/vitejs.config.json'
 import { compile } from "../src/compile";
 import { newProvider } from "../src/provider";
 
-const provider = newProvider(config.networks.local.url)
 
 describe("call test", () => {
+  let provider: ViteAPI
+
+  before('create provider', () => {
+    provider = newProvider(config.networks.local.url)
+  })
+
   it("await call result succeeds", async () => {
     const mineResult = mine(provider)
     const result = await compile("Hello.solpp")
@@ -51,5 +57,5 @@ describe("call test", () => {
     expect(lastToResult).to.not.be.null
     expect(lastToResult!.length).equal(1)
     expect(lastToResult![0]).equal(account.address)
-  }).timeout(20000)
+  }).timeout(40000)
 })
