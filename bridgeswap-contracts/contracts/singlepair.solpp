@@ -1,6 +1,5 @@
+// SPDX-License-Identifier: Unlicense
 pragma soliditypp >=0.4.3;
-
-//import './interfaces/IBridgeswapV1Pair.solpp';
 
 contract SinglePair {
     // Invariants - 
@@ -120,10 +119,6 @@ contract SinglePair {
     onMessage swapOutput(uint256 num_bought, uint256 deadline) payable {
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
         require(height() <= deadline);
-    }
-
-    getter tokenBalance(address addr, tokenId token) returns (uint256) {
-        return bankAccounts[addr].account[token];
     }
 
     onMessage deposit() payable {
