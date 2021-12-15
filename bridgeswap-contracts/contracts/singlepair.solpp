@@ -30,6 +30,14 @@ contract SinglePair {
         return (tokenA, tokenB);
     }
 
+    getter getPairSupply()returns (uint256, uint256) {
+        return (supplyA, supplyB);
+    }
+
+    getter getBalanceAddressToken(address addr, tokenId token) returns (uint256) {
+        return bankAccounts[addr].account[token];
+    }
+
     onMessage initialize(tokenId _tokenA, tokenId _tokenB) {
         require(!initialized);
         initialized = true;

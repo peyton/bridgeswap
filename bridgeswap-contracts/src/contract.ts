@@ -12,6 +12,7 @@ import {
 } from './node'
 
 const { Contracts, Vite_TokenId } = viteConstant
+const { ReceiveAccountBlockTask } = accountBlock;
 
 interface DeployProps {
   responseLatency?: Number
@@ -56,6 +57,47 @@ async function _stakeQuota(
     address: address,
     beneficiaryAddress: beneficiaryAddress,
     amount: amount
+  })
+  return signAndSend(provider, block, key)
+}
+
+async function _autoReceive(
+  provider: ProviderType,
+  address: string,
+  key: string
+) {
+  const ReceiveTask = new ReceiveAccountBlockTask({
+    address: address,
+    privateKey: key,
+    provider: provider
+  });
+  ReceiveTask.start({
+    checkTime: 1000,
+    transctionNumber: 10 // Yes, this is actually mispelled on Vite's end
+  });
+}
+
+async function _issueToken(
+  provider: ProviderType,
+  address: string,
+  key: string,
+  tokenName: string,
+  tokenSymbol: string,
+  decimals = 2,
+  maxSupply = "100000000000000000000",
+  totalSupply = "1000000000000000000",
+  isReIssuable = true,
+  isOwnerBurnOnly = false,
+) {
+  const block = accountBlock.createAccountBlock('issueToken', {
+    address: address,
+    tokenName: tokenName,
+    isReIssuable: isReIssuable,
+    maxSupply: maxSupply,
+    isOwnerBurnOnly: isOwnerBurnOnly,
+    totalSupply: totalSupply,
+    decimals: decimals,
+    tokenSymbol: tokenSymbol
   })
   return signAndSend(provider, block, key)
 }
@@ -201,3 +243,5 @@ export { DeployedContract }
 export const awaitDeploy = _awaitDeploy
 export const awaitDeployConfirmed = _awaitDeployConfirmed
 export const deploy = _deploy
+export const issueToken = _issueToken
+export const autoReceive = _autoReceive
