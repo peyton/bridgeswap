@@ -155,7 +155,60 @@ describe("swap test", function() {
 
   it('basic swap input, correct account balance')
 
-  it('basic swap output, correct supply')
+  it('basic swap output, correct supply', async () => {
+    await mine(provider)
+    const { contract, tokenIdA, tokenIdB } = await _deployContract()
+    async function _call(methodName: string, params: any[], props: CallProps) {
+      return contract.awaitCall(
+        firstAccount.address,
+        firstAccount.privateKey,
+        methodName,
+        params,
+        props
+      )
+    }
+
+    await _call( 
+      'deposit', 
+      [], 
+      { tokenId: tokenIdA, amount: '5000000000000000000' }
+    )
+    await _call(  
+      'deposit', 
+      [], 
+      { tokenId: tokenIdB, amount: '10000000000000000000' }
+    )
+    await _call( 
+      'addLiquidity', 
+      ['5000000000000000000', '10000000000000000000'], 
+      {}
+    )
+    
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
+    const pairsupply = await contract.callOffChain('getPairSupply', []);
+    expect(pairsupply).to.not.be.null
+    expect(pairsupply![0]).equal('5000000000000000000');
+    expect(pairsupply![1]).equal('10000000000000000000');
+
+    const result = await _call(
+      'swapOutput',
+      ['1662497915624478906', '48934'],
+      { tokenId: tokenIdA, amount: '2000000000000000000' }
+    )
+
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
+    await mine(provider)
+    let supplyAfter = await contract.callOffChain('getPairSupply', []);
+    expect(supplyAfter).to.not.be.null
+    expect(supplyAfter![0]).equal('6000000000000000000');
+    expect(supplyAfter![1]).equal('8337502084375521094');
+  }).timeout(60000)
+
   it('basic swap output, correct account balance')
 })
 
