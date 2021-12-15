@@ -6,12 +6,36 @@ contract SinglePair {
     // Invariants - 
     // Symbol A < Symbol B (tbd method, maybe hash each token ID)
 
+    event AddLiquidity(
+        address indexed provider,
+        tokenId indexed tokenAId,
+        uint256 tokenAAmount,
+        tokenId indexed tokenBId,
+        uint256 tokenBAmount
+    );
+    event Deposit(
+        address indexed provider,
+        tokenId indexed tokenid,
+        uint256 amount
+    );
+    event RemoveLiquidity(
+        address indexed provider,
+        tokenId indexed tokenAId,
+        uint256 tokenAAmount,
+        tokenId indexed tokenBId,
+        uint256 tokenBAmount
+    );
     event Swap(
         address indexed destination, 
         tokenId indexed tokenBought, 
         uint256 amountBought, 
         tokenId indexed tokenSold, 
         uint256 amountSold
+    );
+    event Withdrawal(
+        address indexed provider,
+        tokenId indexed tokenid,
+        uint256 amount
     );
 
     tokenId constant ZERO_TOKEN_ID = tokenId("tti_000000000000000000004cfd");
@@ -86,7 +110,7 @@ contract SinglePair {
     // @param deadline Time after which this swap can no longer be executed
     onMessage swapInput(uint256 min_output, uint256 deadline) payable {
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
-        require(block.timestamp <= deadline);
+        require(height() <= deadline);
     }
 
     // @notice Buy tokens
@@ -95,7 +119,7 @@ contract SinglePair {
     // @param deadline Time after which this swap can no longer be executed
     onMessage swapOutput(uint256 num_bought, uint256 deadline) payable {
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
-        require(block.timestamp <= deadline);
+        require(height() <= deadline);
     }
 
     getter tokenBalance(address addr, tokenId token) returns (uint256) {
@@ -103,14 +127,18 @@ contract SinglePair {
     }
 
     onMessage deposit() payable {
-        bankAccounts[msg.sender].account[msg.tokenid]+=msg.amount; 
+        require(msg.tokenid == tokenA || msg.tokenid == tokenB);
+        bankAccounts[msg.sender].account[msg.tokenid] += msg.amount;
+        emit Deposit(msg.sender, msg.tokenid, msg.amount);
     }
 
     onMessage withdraw(uint256 amount, tokenId token) {
+        require(token == tokenA || token == tokenB);
         uint256 balance = bankAccounts[msg.sender].account[token];
         require(amount <= balance);
         bankAccounts[msg.sender].account[token] = balance - amount;
         msg.sender.transfer(token, amount);
+        emit Withdrawal(msg.sender, token, amount);
     }
 
     onMessage addLiquidity(uint256 amountTokenA, uint256 amountTokenB) {
@@ -130,6 +158,14 @@ contract SinglePair {
         // Increment overall supply
         supplyA += amountTokenA;
         supplyB += amountTokenB;
+
+        emit AddLiquidity(
+            msg.sender,
+            tokenA,
+            amountTokenA,
+            tokenB,
+            amountTokenB
+        );
     }
 
     onMessage removeLiquidity(uint256 amountTokenA, uint256 amountTokenB) {
@@ -146,5 +182,13 @@ contract SinglePair {
         // Return tokens to wallet
         msg.sender.transfer(tokenA, amountTokenA);
         msg.sender.transfer(tokenB, amountTokenB);
+
+        emit RemoveLiquidity(
+            msg.sender,
+            tokenA,
+            amountTokenA,
+            tokenB,
+            amountTokenB
+        );
     }
 }
