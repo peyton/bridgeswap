@@ -26,10 +26,10 @@ contract SinglePair {
     );
     event Swap(
         address indexed destination, 
-        tokenId indexed tokenBought, 
-        uint256 amountBought, 
         tokenId indexed tokenSold, 
-        uint256 amountSold
+        uint256 amountSold,
+        tokenId indexed tokenBought, 
+        uint256 amountBought
     );
     event Withdrawal(
         address indexed provider,
@@ -108,8 +108,29 @@ contract SinglePair {
     // @param min_output Minimum tokens bought.
     // @param deadline Time after which this swap can no longer be executed
     onMessage swapInput(uint256 min_output, uint256 deadline) payable {
+        require(msg.tokenid == tokenA); // TODO: generalize
+
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
         require(height() <= deadline);
+
+        // TODO: pay liquidity providers
+
+        uint256 tokenBBought = getInputPrice(msg.amount, supplyA, supplyB);
+        require(tokenBBought <= supplyB);
+        require(tokenBBought >= min_output);
+
+        supplyA += msg.amount;
+        supplyB -= tokenBBought;
+
+        msg.sender.transfer(tokenB, tokenBBought);
+
+        emit Swap(
+            msg.sender,
+            tokenA,
+            msg.amount,
+            tokenB,
+            tokenBBought
+        );
     }
 
     // @notice Buy tokens
@@ -117,8 +138,30 @@ contract SinglePair {
     // @param num_bought Amount of tokens bought.
     // @param deadline Time after which this swap can no longer be executed
     onMessage swapOutput(uint256 num_bought, uint256 deadline) payable {
+        require(msg.tokenid == tokenA); // TODO: generalize
+
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
         require(height() <= deadline);
+
+        // TODO: pay liquidity providers
+
+        uint256 tokenASold = getOutputPrice(num_bought, supplyA, supplyB);
+        require(tokenASold <= msg.amount);
+        require(num_bought <= supplyB);
+
+        supplyA += tokenASold;
+        supplyB -= num_bought;
+
+        msg.sender.transfer(tokenA, msg.amount - tokenASold);
+        msg.sender.transfer(tokenB, num_bought);
+
+        emit Swap(
+            msg.sender,
+            tokenA,
+            tokenASold,
+            tokenB,
+            num_bought
+        );
     }
 
     onMessage deposit() payable {
