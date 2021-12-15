@@ -102,5 +102,5 @@ describe("single pair test", () => {
     expect(pairsupply![0]).equal('0');
     expect(pairsupply![1]).equal('0');
 
-  }).timeout(20000)
+  }).timeout(40000)
 })
