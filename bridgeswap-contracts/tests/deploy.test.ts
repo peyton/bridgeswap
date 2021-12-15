@@ -1,5 +1,6 @@
 // adapted from bridge-vite
 
+import { ViteAPI } from '@vite/vitejs/distSrc/utils/type'
 import { describe } from 'mocha'
 import { expect } from 'chai'
 
@@ -16,7 +17,11 @@ import { compile } from '../src/compile'
 
 
 describe('deploy test', () => {
-  const provider = newProvider(config.networks.local.url)
+  let provider: ViteAPI
+
+  before('create provider', () => {
+    provider = newProvider(config.networks.local.url)
+  })
 
   it('deploy succeeds', async () => {
     const mineResult = mine(provider)

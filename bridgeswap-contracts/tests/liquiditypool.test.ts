@@ -1,9 +1,9 @@
+import { ViteAPI } from '@vite/vitejs/distSrc/utils/type'
 import { describe } from "mocha";
 import { assert, expect } from "chai";
 import {
   DeployedContract,
   awaitDeployConfirmed,
-  issueToken,
   autoReceive
 } from "../src/contract";
 import { mine } from "../src/node";
@@ -11,11 +11,19 @@ import accounts from "../src/accounts";
 import config from '../src/vitejs.config.json'
 import { compile } from "../src/compile";
 import { newProvider } from '../src/provider';
-import { type TokenInfo, listTokensOwnedByAddress } from '../src/token'
+import { 
+  type TokenInfo,
+  issueToken,
+  listTokensOwnedByAddress 
+} from '../src/token'
 
 describe("liquidity pool test", () => {
-  const provider = newProvider(config.networks.local.url)
+  let provider: ViteAPI
 
+  before('create provider', () => {
+    provider = newProvider(config.networks.local.url)
+  })
+  
   it("open a liquidity pool", async () => {
     const mineResult = mine(provider)
     const result = await compile("singlepair.solpp")
@@ -45,7 +53,7 @@ describe("liquidity pool test", () => {
         tokenIdA = tokenId;
       }
     }
-    const balanceInfo = await provider.getBalanceInfo(account.address);
+    const balanceInfo = await provider.getBalanceInfo(account.address)
 
     const { send, receive } = await awaitDeployConfirmed(
       provider,
@@ -56,7 +64,7 @@ describe("liquidity pool test", () => {
       {
         responseLatency: 1
       }
-    );
+    )
 
     await mine(provider)
 
@@ -68,7 +76,7 @@ describe("liquidity pool test", () => {
       receive.address,
       result.abis[0],
       result.offChainCodes[0]
-    );
+    )
 
     await contract.awaitCall(account.address, account.privateKey, 'initialize', [tokenIdA, tokenIdB], {})
     await mine(provider)
