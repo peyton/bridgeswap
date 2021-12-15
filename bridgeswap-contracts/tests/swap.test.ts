@@ -201,6 +201,8 @@ describe("swap test", function() {
 
     await mine(provider)
     await mine(provider)
+    await mine(provider)
+    await mine(provider)
 
     const { balance: finalBalances } = await provider.getBalanceInfo(firstAccount.address)
 
