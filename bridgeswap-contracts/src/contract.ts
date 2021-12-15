@@ -166,7 +166,10 @@ class DeployedContract {
       tokenId,
       amount
     })
-    return await awaitConfirmed(this._provider, block.hash!)
+    const receivedBlock = await awaitReceived(this._provider, block.hash!)
+    await mine(this._provider)
+    const confirmedBlock = await awaitConfirmed(this._provider, receivedBlock.receiveBlockHash!)
+    return { send: receivedBlock, receive: confirmedBlock }
   }
 
   async call(

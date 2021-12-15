@@ -87,10 +87,10 @@ describe("liquidity pool test", () => {
     expect(tokenAResult![0]).equal(tokenIdA)
 
     await contract.awaitCall(account.address, account.privateKey, 'deposit', [], { tokenId: tokenIdA, amount: '1' });
-    const depresponse = await contract.awaitCall(account.address, account.privateKey, 'deposit', [], { tokenId: tokenIdB, amount: '1' });
+    await contract.awaitCall(account.address, account.privateKey, 'deposit', [], { tokenId: tokenIdB, amount: '1' });
     await mine(provider)
     await mine(provider)
-    const response = await contract.awaitCall(account.address, account.privateKey, 'addLiquidity', [1, 1], {});
+    await contract.awaitCall(account.address, account.privateKey, 'addLiquidity', [1, 1], {});
     await mine(provider)
     await mine(provider)
     let banksupply = await contract.callOffChain('getBalanceAddressToken', [account.address, tokenIdA]);

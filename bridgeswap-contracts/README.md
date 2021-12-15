@@ -20,6 +20,6 @@ docker run -p 127.0.0.1:48132:48132 --rm vitelabs/gvite-nightly:v2.11.1-latest v
 
 `yarn test`
 
-### Test single file
+### Run tests matching pattern
 
-`yarn test:file tests/deploy.test.ts`
+`yarn test -g 'swap test'`
