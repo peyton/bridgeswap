@@ -20,8 +20,8 @@ async function _issueToken(
   tokenName: string,
   tokenSymbol: string,
   decimals = 2,
-  maxSupply = "10000000000000000000000",
-  totalSupply = "100000000000000000000",
+  maxSupply = "1000000000000000000000000",
+  totalSupply = "10000000000000000000000",
   isReIssuable = true,
   isOwnerBurnOnly = false,
 ) {
@@ -45,8 +45,8 @@ async function _awaitIssueTokenConfirmed(
   tokenName: string,
   tokenSymbol: string,
   decimals = 2,
-  maxSupply = '10000000000000000000000',
-  totalSupply = '100000000000000000000',
+  maxSupply = '1000000000000000000000000',
+  totalSupply = '10000000000000000000000',
   isReIssuable = true,
   isOwnerBurnOnly = false,
 ) {
