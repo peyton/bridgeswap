@@ -72,10 +72,6 @@ contract SinglePair {
         return numerator / denominator + 1;
     }
 
-    getter tokenBalance(address addr, tokenId token)returns (uint256) {
-        return bankAccounts[addr].account[token];
-    }
-
     onMessage deposit() payable {
         bankAccounts[msg.sender].account[msg.tokenid]+=msg.amount; 
     }
