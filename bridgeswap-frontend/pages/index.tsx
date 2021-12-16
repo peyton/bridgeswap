@@ -67,12 +67,18 @@ const Home: NextPage = () => {
   }
   else if (pageNav == "pool") {
     return (
-      <Pool vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} pageNav={() => setPageNav("swap")} />
+      <div>
+        <button onClick={() => setPageNav("swap")}>Go to Swap</button>
+        <Pool vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} pageNav={() => setPageNav("swap")} />
+      </div>
     )
   }
   else {
     return (
-      <Swap vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} pageNav={() => setPageNav("pool")} />
+      <div>
+        <button onClick={() => setPageNav("pool")}>Go to Pool</button>
+        <Swap vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} pageNav={() => setPageNav("pool")} />
+      </div>
     )
   }
 }

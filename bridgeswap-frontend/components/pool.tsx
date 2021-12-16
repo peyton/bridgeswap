@@ -212,7 +212,6 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
 
     return (
       <div>
-        <button onClick={pageNav}>Go to Swap</button>
         <h1>Deposit Pairs</h1>
         <div>
           <h2>{tokenA[0]}</h2>
