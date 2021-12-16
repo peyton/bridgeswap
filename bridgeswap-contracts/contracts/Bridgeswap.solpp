@@ -256,15 +256,15 @@ contract Bridgeswap {
     uint256 supplyA = _pair.tokenA == _tokenAIn ? _pair.supplyA : _pair.supplyB;
     uint256 supplyB = _pair.tokenA == _tokenAIn ? _pair.supplyB : _pair.supplyA;
 
-    uint256 amountTokenA = amount * supplyA / _pair.totalPoolSupply;
-    uint256 amountTokenB = amount * supplyB / _pair.totalPoolSupply;
+    uint256 amountTokenA = _amount * supplyA / _pair.totalPoolSupply;
+    uint256 amountTokenB = _amount * supplyB / _pair.totalPoolSupply;
     require(amountTokenA >= _minTokenA);
     require(amountTokenB >= _minTokenB);
 
     // Remove from pool
-    require(_pair.poolBalances[msg.sender] >= amount);
-    _pair.poolBalances[msg.sender] -= amount;
-    _pair.totalPoolSupply -= amount;
+    require(_pair.poolBalances[msg.sender] >= _amount);
+    _pair.poolBalances[msg.sender] -= _amount;
+    _pair.totalPoolSupply -= _amount;
     if (_pair.tokenA == _tokenAIn) {
       _pair.supplyA -= amountTokenA;
       _pair.supplyB -= amountTokenB;
