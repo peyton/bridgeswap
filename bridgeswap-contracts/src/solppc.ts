@@ -43,6 +43,7 @@ function _parseCompileOutput(output: string): CompileResult {
   let lines = output.split(os.EOL);
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i]
+    console.log(line)
     if (line.startsWith("======= ")) {
       line = line.slice("======= ".length, -" =======".length).split(":")[1]
       result.contractNames.push(line.trim())

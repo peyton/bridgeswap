@@ -1,0 +1,355 @@
+// SPDX-License-Identifier: Unlicense
+pragma soliditypp >=0.4.3;
+
+
+contract Bridgeswap {
+
+  struct Pair {
+    bool initialized;
+
+    tokenId tokenA;
+    tokenId tokenB;
+
+    uint256 supplyA;
+    uint256 supplyB;
+
+    uint256 totalPoolSupply;
+    mapping(address => uint256) poolBalances;
+  }
+
+  struct PairFlag {
+    tokenId tokenA;
+    tokenId tokenB;
+  }
+
+  // --------------------
+  // Events
+  // --------------------
+
+  event AddLiquidity(
+    address indexed provider,
+    tokenId indexed tokenAId,
+    uint256 tokenAAmount,
+    tokenId indexed tokenBId,
+    uint256 tokenBAmount
+  );
+  event ChangeOwner(
+    address indexed newOwner
+  );
+  event Deposit(
+    address indexed provider,
+    tokenId indexed tokenid,
+    uint256 amount
+  );
+  event RemoveLiquidity(
+    address indexed provider,
+    tokenId indexed tokenAId,
+    uint256 tokenAAmount,
+    tokenId indexed tokenBId,
+    uint256 tokenBAmount
+  );
+  event Swap(
+    address indexed destination, 
+    tokenId indexed tokenSold, 
+    uint256 amountSold,
+    tokenId indexed tokenBought, 
+    uint256 amountBought
+  );
+  event Withdrawal(
+    address indexed provider,
+    tokenId indexed tokenid,
+    uint256 amounta
+  );
+
+  // --------------------
+  // State
+  // --------------------
+
+  address public owner;
+
+  mapping(tokenId => mapping(tokenId => Pair)) pairs;
+  PairFlag[] pairFlags;
+
+  mapping(address => mapping(tokenId => uint256)) holdingPool;
+
+  // --------------------
+  // 
+  // --------------------
+
+  constructor() {
+    owner = msg.sender;
+  }
+
+  // --------------------
+  // Owned
+  // --------------------
+
+  onMessage changeOwner(address _newOwner) {
+      require(msg.sender == owner && _newOwner != owner);
+      owner = _newOwner;
+      emit ChangeOwner(_newOwner);
+  }
+
+  // --------------------
+  // Pairs
+  // --------------------
+
+  onMessage addPair(tokenId _tokenAIn, tokenId _tokenBIn) {
+    require(msg.sender == owner);
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(!_pair.initialized);
+
+    _pair.initialized = true;
+    _pair.tokenA = _tokenA;
+    _pair.tokenB = _tokenB;
+    
+    pairFlags.push(PairFlag({
+      tokenA: _tokenA, 
+      tokenB: _tokenB}
+    ));
+  }
+
+  function canonicalizePair(tokenId _tokenA, tokenId _tokenB) private pure returns (tokenId, tokenId) {
+    require(_tokenA != _tokenB);
+    
+    if (_tokenA < _tokenB) {
+      return (_tokenA, _tokenB);
+    } else {
+      return (_tokenB, _tokenA);
+    }
+  }
+
+  // --------------------
+  // Liquidity
+  // --------------------
+
+  getter getHoldingPoolBalance(address _address, tokenId _token) view returns (uint256) {
+    return holdingPool[_address][_token];
+  }
+
+  onMessage deposit() payable {
+    require(msg.amount > 0);
+    holdingPool[msg.sender][msg.tokenid] += msg.amount;
+    emit Deposit(msg.sender, msg.tokenid, msg.amount);
+  }
+
+  onMessage withdraw(uint256 _amount, tokenId _token) {
+    uint256 _senderBalance = holdingPool[msg.sender][_token];
+    require(_amount <= _senderBalance);
+    holdingPool[msg.sender][_token] -= _amount;
+    msg.sender.transfer(_token, _amount);
+    emit Withdrawal(msg.sender, _token, _amount);
+  }
+
+  // @notice Get the amount of liquidity provided by address for a given pair.
+  // 
+  getter getLiquidityPoolBalance(address _address, tokenId _tokenAIn, tokenId _tokenBIn) view returns (uint256) {
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
+    return _pair.poolBalances[_address];
+  }
+
+  // @notice Move tokens from holding pool at current ratio.
+  // @param _tokenA First token to add.
+  // @param _amountTokenA Number of token A added.
+  // @param _tokenB Second token to add.
+  // @param _maxTokenB Maximum number of token B added. Transaction fails if exceeded.
+  // @param _deadline Time after which this transaction can no longer be executed.
+  // @return addedLiquidity The amount of liquidity added.
+  message addedLiquidity(tokenId indexed tokenA, tokenId indexed tokenB, uint256 amount);
+  onMessage addLiquidity(
+    tokenId _tokenAIn,
+    uint256 _amountTokenA, 
+    tokenId _tokenBIn,
+    uint256 _maxTokenB, 
+    uint256 _deadline
+  ) {
+    // TODO: implement swap fee
+    require(height() <= _deadline);
+    // require(amountTokenA > 0);
+    // require(maxTokenB > 0);
+
+    // uint256 balanceA = bankAccounts[msg.sender].account[tokenA];
+    // uint256 balanceB = bankAccounts[msg.sender].account[tokenB];
+
+    // uint256 amountTokenB;
+    // uint256 liquidityAdded;
+
+    // if (totalPoolSupply > 0) {
+    //   // Add liquidity at current rate.
+    //   amountTokenB = amountTokenA * supplyB / supplyA + 1;
+    //   require(amountTokenB <= maxTokenB);
+    //   liquidityAdded = amountTokenA * totalPoolSupply / supplyA;
+    // } else {
+    //   // Initial liquidity for pair.
+    //   amountTokenB = min(maxTokenB, balanceB);
+    //   liquidityAdded = amountTokenA;
+    // }
+    // // Update bank balance 
+    // require((amountTokenA <= balanceA) && (amountTokenB <= balanceB));
+    // bankAccounts[msg.sender].account[tokenA] -= amountTokenA;
+    // bankAccounts[msg.sender].account[tokenB] -= amountTokenB;
+
+    // // Mint pool tokens
+    // poolBalances[msg.sender] += liquidityAdded;
+    // totalPoolSupply += liquidityAdded;
+
+    // // Increment overall supply
+    // supplyA += amountTokenA;
+    // supplyB += amountTokenB;
+
+    // send(msg.sender, addedLiquidity(liquidityAdded));
+    // emit AddLiquidity(
+    //   msg.sender,
+    //   tokenA,
+    //   amountTokenA,
+    //   tokenB,
+    //   amountTokenB
+    // );
+  }
+
+  // @notice Withdraw tokens at current ratio.
+  // @param _amount Amount of liquidity to remove.
+  // @param _tokenA The first token in the pair.
+  // @param _minTokenA Minimum number of token A removed.
+  // @param _tokenB The second token in the pair.
+  // @param _minTokenB Minimum number of token B removed.
+  // @param _deadline Time after which this transaction can no longer be executed.
+  onMessage removeLiquidity(
+    uint256 _amount,
+    tokenId _tokenA,
+    uint256 _minTokenA,
+    tokenId _tokenB,
+    uint256 _minTokenB,
+    uint256 _deadline
+  ) {
+    require(height() <= _deadline);
+    // require(amount <= totalPoolSupply);
+
+    // uint256 amountTokenA = amount * supplyA / totalPoolSupply;
+    // uint256 amountTokenB = amount * supplyB / totalPoolSupply;
+    // require(amountTokenA >= minTokenA);
+    // require(amountTokenB >= minTokenB);
+
+    // // Remove from pool
+    // require(poolBalances[msg.sender] >= amount);
+    // poolBalances[msg.sender] -= amount;
+
+    // // Remove from supply
+    // supplyA -= amountTokenA;
+    // supplyB -= amountTokenB;
+    // totalPoolSupply -= amount;
+
+    // // Return tokens to wallet
+    // msg.sender.transfer(tokenA, amountTokenA);
+    // msg.sender.transfer(tokenB, amountTokenB);
+
+    // emit RemoveLiquidity(
+    //   msg.sender,
+    //   tokenA,
+    //   amountTokenA,
+    //   tokenB,
+    //   amountTokenB
+    // );
+  }
+
+  // --------------------
+  // Swapping
+  // --------------------
+
+  // @dev Pricing function for converting between token A and token B
+  // @param input_amount Amount of token A or token B being sold.
+  // @param input_reserve Amount of token A or token B (input type) in exchange reserves.
+  // @param output_reserve Amount of token A or token B (output type) in exchange reserves.
+  // @return Amount of token A or token B bought.
+  function getInputPrice(uint256 input_amount, uint256 input_reserve, uint256 output_reserve) private pure returns (uint256) {
+    uint256 input_amount_with_fee = input_amount * 997;
+    uint256 numerator = input_amount_with_fee * output_reserve;
+    uint256 denominator = (input_reserve * 1000) + input_amount_with_fee;
+    return numerator / denominator;
+  }
+
+  // @dev Pricing function for converting between token A and token B.
+  // @param output_amount Amount of token A or token B being bought.
+  // @param input_reserve Amount of token A or token B (input type) in exchange reserves.
+  // @param output_reserve Amount of token A or token B (output type) in exchange reserves.
+  // @return Amount of token A or token B sold.
+  function getOutputPrice(uint256 output_amount, uint256 input_reserve, uint256 output_reserve) private pure returns (uint256) {
+    uint256 numerator = input_reserve * output_amount * 1000;
+    uint256 denominator = (output_reserve - output_amount) * 997;
+    return numerator / denominator + 1;
+  }
+
+  // @notice Buy tokens
+  // @dev User specifies exact input (msg.amount of msg.tokenId) and minimum output (slippage).
+  // @param _outputTokenId Token to buy.
+  // @param _minOutput Minimum tokens bought; fails if not met.
+  // @param _deadline Height after which this swap can no longer be executed
+  onMessage swapInput(tokenId _outputTokenId, uint256 _minOutput, uint256 _deadline) payable {
+    require(height() <= _deadline);
+    // require(msg.tokenid == tokenA); // TODO: generalize
+
+    // require(msg.tokenid == tokenA || msg.tokenid == tokenB);
+
+    // uint256 tokenBBought = getInputPrice(msg.amount, supplyA, supplyB);
+    // require(tokenBBought <= supplyB);
+    // require(tokenBBought >= min_output);
+
+    // supplyA += msg.amount;
+    // supplyB -= tokenBBought;
+
+    // msg.sender.transfer(tokenB, tokenBBought);
+
+    // emit Swap(
+    //   msg.sender,
+    //   tokenA,
+    //   msg.amount,
+    //   tokenB,
+    //   tokenBBought
+    // );
+  }
+
+  // @notice Buy tokens
+  // @dev User specifies maximum input (msg.amount of msg.tokenId) and exact output.
+  // @param _outputTokenId Token to buy.
+  // @param _numBought Amount of tokens bought.
+  // @param _deadline Height after which this swap can no longer be executed
+  onMessage swapOutput(tokenId _outputTokenId, uint256 _numBought, uint256 _deadline) payable {
+    require(height() <= _deadline);
+    // require(msg.tokenid == tokenA); // TODO: generalize
+
+    // require(msg.tokenid == tokenA || msg.tokenid == tokenB);
+
+    // uint256 tokenASold = getOutputPrice(num_bought, supplyA, supplyB);
+    // require(tokenASold <= msg.amount);
+    // require(num_bought <= supplyB);
+
+    // supplyA += tokenASold;
+    // supplyB -= num_bought;
+
+    // msg.sender.transfer(tokenA, msg.amount - tokenASold);
+    // msg.sender.transfer(tokenB, num_bought);
+
+    // emit Swap(
+    //   msg.sender,
+    //   tokenA,
+    //   tokenASold,
+    //   tokenB,
+    //   num_bought
+    // );
+  }
+
+  // --------------------
+  // Utilities
+  // --------------------
+
+  function max(uint256 _a, uint256 _b) private pure returns (uint256) {
+    return _a >= _b ? _a : _b;
+  }
+
+  function min(uint256 _a, uint256 _b) private pure returns (uint256) {
+    return _a < _b ? _a : _b;
+  }
+}
