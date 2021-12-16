@@ -308,8 +308,8 @@ describe('bridgeswap tests', () => {
         )
       }
 
-      await _call('deposit', [], { tokenId: tokenIdA, amount: '2' })
-      await _call('deposit', [], { tokenId: tokenIdB, amount: '5' })
+      await _call('deposit', [], { tokenId: tokenIdA, amount: '20000' })
+      await _call('deposit', [], { tokenId: tokenIdB, amount: '50000' })
       await mine(provider)
       await mine(provider)
 
@@ -317,9 +317,9 @@ describe('bridgeswap tests', () => {
         'addLiquidity',
         [
           tokenIdA,
-          '1',
+          '10000',
           tokenIdB,
-          '2',
+          '20000',
           '3924849'
         ],
         {}
@@ -329,9 +329,9 @@ describe('bridgeswap tests', () => {
         'addLiquidity',
         [
           tokenIdA,
-          '1',
+          '10000',
           tokenIdB,
-          '3',
+          '30000',
           '3924849'
         ],
         {}
@@ -339,19 +339,87 @@ describe('bridgeswap tests', () => {
       
       await mine(provider)
       await mine(provider)
-      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdA])
       expect(balanceA).to.not.be.null
-      expect(balanceA![0]).equal('1')
+      expect(balanceA![0]).equal('0')
+      const balanceB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
+      expect(balanceB).to.not.be.null
+      expect(balanceB![0]).equal('9999')
 
       const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
       expect(pairSupply).to.not.be.null
-      expect(pairSupply![0]).to.equal('2')
-      expect(pairSupply![1]).to.equal('4')
+      expect(pairSupply![0]).to.equal('20000')
+      expect(pairSupply![1]).to.equal('40001')
+    }).timeout(60000)
+
+    it('add liquidity to existing pool, swapping token order', async () => {
+      const { contract } = await _deployContractAndAddPairs()
+      async function _call(methodName: string, params: any[], props: CallProps) {
+        return contract.awaitCall(
+          firstAccount.address,
+          firstAccount.privateKey,
+          methodName,
+          params,
+          props
+        )
+      }
+
+      await _call('deposit', [], { tokenId: tokenIdA, amount: '20000' })
+      await _call('deposit', [], { tokenId: tokenIdB, amount: '50000' })
+      await mine(provider)
+      await mine(provider)
+
+      await _call(
+        'addLiquidity',
+        [
+          tokenIdA,
+          '10000',
+          tokenIdB,
+          '20000',
+          '3924849'
+        ],
+        {}
+      ) // 1:2 ratio
+
+      await _call(
+        'addLiquidity',
+        [
+          tokenIdB,
+          '20001',
+          tokenIdA,
+          '30000',
+          '3924849'
+        ],
+        {}
+      ) // should still be 1:2 ratio
+      
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdA])
+      expect(balanceA).to.not.be.null
+      expect(balanceA![0]).equal('0')
+      const balanceB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
+      expect(balanceB).to.not.be.null
+      expect(balanceB![0]).equal('9999')
+
+      const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
+      expect(pairSupply).to.not.be.null
+      expect(pairSupply![0]).to.equal('20000')
+      expect(pairSupply![1]).to.equal('40001')
     }).timeout(60000)
 
     it('liquidity pool swaps unbalanced deposit on addLiquiditySwap')
-
-
   })
-
 })
