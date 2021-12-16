@@ -2,7 +2,7 @@
 
 The main contract is located at `contracts/Bridgeswap.solpp`.
 
-Automated tests are defined in `tests/`
+Automated tests are defined in `tests/`.
 
 ## Local development
 
