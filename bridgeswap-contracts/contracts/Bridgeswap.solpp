@@ -182,14 +182,14 @@ contract Bridgeswap {
     return _pair.poolBalances[_address];
   }
 
+  message addedLiquidity(tokenId indexed tokenA, tokenId indexed tokenB, uint256 amount);
   // @notice Move tokens from holding pool at current ratio.
-  // @param _tokenA First token to add.
+  // @param _tokenAIn First token to add.
   // @param _amountTokenA Number of token A added.
-  // @param _tokenB Second token to add.
+  // @param _tokenBIn Second token to add.
   // @param _maxTokenB Maximum number of token B added. Transaction fails if exceeded.
   // @param _deadline Time after which this transaction can no longer be executed.
   // @return addedLiquidity The amount of liquidity added.
-  message addedLiquidity(tokenId indexed tokenA, tokenId indexed tokenB, uint256 amount);
   onMessage addLiquidity(
     tokenId _tokenAIn,
     uint256 _amountTokenA, 
@@ -197,10 +197,7 @@ contract Bridgeswap {
     uint256 _maxTokenB, 
     uint256 _deadline
   ) {
-    // TODO: implement swap fee
     require(height() <= _deadline);
-    require(_amountTokenA > 0);
-    require(_maxTokenB > 0);
 
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
     Pair storage _pair = pairs[_tokenA][_tokenB];
@@ -250,13 +247,91 @@ contract Bridgeswap {
       _pair.supplyB += _amountTokenA;
     }
 
-    send(msg.sender, addedLiquidity(_tokenA, _tokenB, liquidityAdded));
+    send(msg.sender, addedLiquidity(_tokenAIn, _tokenBIn, liquidityAdded));
     emit AddLiquidity(
       msg.sender,
       _tokenAIn,
       _amountTokenA,
       _tokenBIn,
       amountTokenB
+    );
+  }
+
+  // @notice Add exactly the number of tokens specified from the holding pool to the liquidity pool, swapping if needed.
+  // @param _tokenA First token to add.
+  // @param _amountTokenA Number of token A added.
+  // @param _tokenB Second token to add.
+  // @param _amountTokenB Number of token B added.
+  // @param _deadline Time after which this transaction can no longer be executed.
+  // @return addedLiquidity The amount of liquidity added.
+    onMessage addLiquiditySwap(
+    tokenId _tokenAIn,
+    uint256 _amountTokenA, 
+    tokenId _tokenBIn,
+    uint256 _amountTokenB, 
+    uint256 _deadline
+  ) {
+    require(height() <= _deadline);
+
+    // Update holding pool
+    require(_amountTokenA <= holdingPool[msg.sender][_tokenAIn]);
+    require(_amountTokenB <= holdingPool[msg.sender][_tokenBIn]);
+    holdingPool[msg.sender][_tokenAIn] -= _amountTokenA;
+    holdingPool[msg.sender][_tokenBIn] -= _amountTokenB;
+
+    // Update pair supply
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
+
+    uint256 _initialSupply1;
+    uint256 _initialSupply2;
+    uint256 _amount1;
+    uint256 _amount2;
+    if (_pair.tokenA == _tokenAIn) {
+      _initialSupply1 = _pair.supplyA;
+      _initialSupply2 = _pair.supplyB;
+      _pair.supplyA += _amountTokenA;
+      _pair.supplyB += _amountTokenB;
+      _amount1 = _amountTokenA;
+      _amount2 = _amountTokenB;
+    } else {
+      _initialSupply1 = _pair.supplyB;
+      _initialSupply2 = _pair.supplyA;
+      _pair.supplyA += _amountTokenB;
+      _pair.supplyB += _amountTokenA;
+      _amount1 = _amountTokenB;
+      _amount2 = _amountTokenA;
+    }
+
+    uint256 _liquidityAdded;
+
+    if (_pair.totalPoolSupply > 0) {
+      // Add liquidity at current rate, charging for swap.
+      uint256 _freeLiquidity = min(
+        _amount1 * _pair.totalPoolSupply / _initialSupply1,
+        _amount2 * _pair.totalPoolSupply / _initialSupply2
+      );
+      uint256 _swappedLiquidity = max(
+        _amount1 * _pair.totalPoolSupply / _initialSupply1,
+        _amount2 * _pair.totalPoolSupply / _initialSupply2
+      ) - _freeLiquidity;
+      _liquidityAdded = uint256(997) * _swappedLiquidity / uint256(1000) + _freeLiquidity;
+    } else {
+      // Initial liquidity for pair.
+      _liquidityAdded = _amount1;
+    }
+
+    _pair.poolBalances[msg.sender] += _liquidityAdded;
+    _pair.totalPoolSupply += _liquidityAdded;
+
+    send(msg.sender, addedLiquidity(_tokenAIn, _tokenBIn, _liquidityAdded));
+    emit AddLiquidity(
+      msg.sender,
+      _tokenAIn,
+      _amountTokenA,
+      _tokenBIn,
+      _amountTokenB
     );
   }
 
