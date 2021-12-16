@@ -6,6 +6,7 @@ import { wallet, accountBlock, ViteAPI, constant } from '@vite/vitejs';
 import { deploy, awaitDeployConfirmed, DeployedContract } from '../src/contract'
 import { CompileResult } from '../src/solppc'
 import { compile } from '../src/compile'
+import { issueToken, listTokensOwnedByAddress } from '../src/token'
 
 const { getWallet } = wallet;
 const { Vite_TokenId } = constant;
@@ -69,6 +70,7 @@ async function _deployContract() {
     compileResult.abis[0],
     compileResult.offChainCodes[0]
   )
+  console.log("ABI", JSON.stringify(compileResult.abis[0]));
   console.log("Contracthere", contract)
   return contract
 }
@@ -88,9 +90,23 @@ async function mintToken() {
   console.log("Here");
   const result = await myAccountBlock.sign().send();
   console.log('send success', result);
-  //    await provider.request("miner_mine");
+  //    await provider.request("miner_mine");    
   await awaitReceived(myAccountBlock.hash!);
-  //    const initializeBlock = await thiscontract.call(address, privateKey,
+  console.log("Pre add pair")
+  let pairs = await thiscontract.callOffChain("getPairCount", [])
+  console.log("Pairs before:", pairs)
+  console.log("Initializing")
+  const initializeBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_80f3751485e4e83456059473", "tti_687d8a93915393b219212c73"], {})
+  await awaitReceived(initializeBlock.hash!);
+  console.log("Post add pair")
+  pairs = await thiscontract.callOffChain("getPairCount", [])
+  console.log("Pairs after:", pairs)
+  /*const r1 = await issueToken(provider, address, privateKey, "TOKENONE", "TO")
+  const r2 = await issueToken(provider, address, privateKey, "TOKENTWO", "TT")
+  await awaitReceived(r1.hash!)
+  await awaitReceived(r2.hash!)
+  const tl = await listTokensOwnedByAddress(provider, address);
+  console.log("Tokens", tl)*/
   return 0;
 }
 

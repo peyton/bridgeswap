@@ -62,8 +62,8 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
   }, [])
 
   function updateBalancesAB() {
-    callOffChain(accounts, provider, "getBalanceAddressToken", [accounts[0], tokenMap.get(tokenA[0]).tokenId]).then(setBankBalanceA);
-    callOffChain(accounts, provider, "getBalanceAddressToken", [accounts[0], tokenMap.get(tokenB[0]).tokenId]).then(setBankBalanceB);
+    callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenA[0]).tokenId]).then(setBankBalanceA);
+    callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenB[0]).tokenId]).then(setBankBalanceB);
   }
 
   const chooseTokens = async () => {
@@ -75,7 +75,9 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
   }
 
   function deposit(token) {
-    callOnChain(accounts, vbInstance, "deposit", [], tokenMap.get(token).tokenId, 10).then((result) => console.log(result)).catch((err) => console.log(err));
+    const this_id = tokenMap.get(token).tokenId
+    console.log("Depositing", this_id)
+    callOnChain(accounts, provider, vbInstance, "deposit", [], tokenMap.get(token).tokenId, "1000000000000000000").then((result) => console.log(result)).catch((err) => console.log(err));
   }
 
   if (tokenMap === undefined || tokenMap.size == 0) {

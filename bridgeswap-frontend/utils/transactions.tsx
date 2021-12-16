@@ -5,18 +5,13 @@ import { contract_abi, contract_code, contract_address } from '../utils/abi'
 
 export async function sendTransactionAsync(accounts, vbInstanceG: Connector, ...args: any): Promise<any> {
   console.log("Sending transaction");
-  if (vbInstanceG === undefined) {
-    console.log("Instance is not ready yet");
-    return;
-  }
+  console.log("instance", vbInstanceG)
   return new Promise((res, rej) => {
     vbInstanceG.on('disconnect', () => {
       rej("Request aborted due to disconnect.");
     });
-
+    console.log("In promise")
     vbInstanceG.sendCustomRequest({ method: 'vite_signAndSendTx', params: args }).then((r: any) => {
-      console.log("sreceived")
-      //      vbInstanceG.updateSession({ chainId: 3, accounts: accounts });
       res(r);
     }).catch((e: any) => {
       rej(e);
@@ -24,17 +19,18 @@ export async function sendTransactionAsync(accounts, vbInstanceG: Connector, ...
   });
 }
 
-export async function callOnChain(accounts, vbInstance, method, params, tokenId, amount) {
+export async function callOnChain(accounts, provider, vbInstance, method, params, tokenId, amount) {
   const block = accountBlock.createAccountBlock('callContract', {
     address: accounts[0],
     abi: contract_abi,
     toAddress: contract_address,
-    methodName: method,
+    methodName: "deposit",
     params: params,
     tokenId: tokenId,
     amount: amount
   });
-
+  block.setProvider(provider);
+  await block.autoSetPreviousAccountBlock();
   console.log(block)
 
   const r = sendTransactionAsync(accounts, vbInstance, { block: block.accountBlock });
@@ -43,6 +39,7 @@ export async function callOnChain(accounts, vbInstance, method, params, tokenId,
 
 // Calls function from the pair contract
 export async function callOffChain(accounts, provider, method, params) {
+  console.log(accounts, provider, method, params);
   const block = accountBlock.createAccountBlock('callContract', {
     address: accounts[0],
     abi: contract_abi,
@@ -54,7 +51,7 @@ export async function callOffChain(accounts, provider, method, params) {
 
   const r = await provider.request('contract_callOffChainMethod', {
     "address": contract_address,
-    "code": Buffer.from(contract_code, 'hex').toString('base64'),
+    "code": contract_code,
     "data": block.data
   })
 

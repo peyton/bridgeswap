@@ -11,6 +11,7 @@ import Swap from '../components/swap'
 import Pool from '../components/pool'
 const { Contracts, Vite_TokenId } = constant;
 import { WS_RPC } from '@vite/vitejs-ws';
+import { callOnChain } from '../utils/transactions'
 //Modal.setAppElement('#root');
 
 const Home: NextPage = () => {
@@ -29,6 +30,7 @@ const Home: NextPage = () => {
       setWSProvider((provider as unknown) as (typeof ViteAPI));
     });
     const vbInstance = new Connector({ bridge: process.env.NEXT_PUBLIC_CONNECTOR });
+    // Chain ID 3 for debug/local
     vbInstance.createSession().then(() => connectURISet(vbInstance.uri));
     vbInstance.on('connect', (e: Error | null, payload: any | null) => {
       if (e) {
@@ -42,6 +44,7 @@ const Home: NextPage = () => {
       // Can insert onConnect logic here
       setVBInstanceG(vbInstance);
       console.log(vbInstance);
+      //      callOnChain(accounts, provider, vbInstance, "deposit", [],  "tti_06822f8d096ecdf9356b666c", '10000000000000000').then((res) => console.log(res));
     });
     vbInstance.on('disconnect', () => {
       setVBInstanceG(undefined);

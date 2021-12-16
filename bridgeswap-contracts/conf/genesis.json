@@ -88,9 +88,9 @@
         "IsOwnerBurnOnly": false,
         "IsReIssuable": true
       },
-      "tti_322862b3f8edae3b02b110b1": {
-        "TokenName": "FAKE BTC",
-        "TokenSymbol": "FBTC",
+      "tti_687d8a93915393b219212c73": {
+        "TokenName": "FAKE ETH",
+        "TokenSymbol": "ETH-000",
         "TotalSupply": 1000000000000000000000000000,
         "Decimals": 18,
         "Owner": "vite_bb6ad02107a4422d6a324fd2e3707ad53cfed9359378a78792",
@@ -98,9 +98,9 @@
         "IsOwnerBurnOnly": false,
         "IsReIssuable": true
       },
-      "tti_06822f8d096ecdf9356b666c": {
-        "TokenName": "FAKE ETH",
-        "TokenSymbol": "FETH",
+      "tti_80f3751485e4e83456059473": {
+        "TokenName": "FAKE USDT",
+        "TokenSymbol": "USDT-000",
         "TotalSupply": 1000000000000000000000000000,
         "Decimals": 18,
         "Owner": "vite_bb6ad02107a4422d6a324fd2e3707ad53cfed9359378a78792",
@@ -161,8 +161,8 @@
     },
       "vite_cecce91eb5ed40879105e1c780c572d087bb6ec91db043f422": {
 	  "tti_5649544520544f4b454e6e40": 1000000000000000000000000000,
-	  "tti_06822f8d096ecdf9356b666c": 1000000000000000000000000000,
-	  "tti_322862b3f8edae3b02b110b1": 1000000000000000000000000000	  
+	  "tti_80f3751485e4e83456059473": 1000000000000000000000000000,
+	  "tti_687d8a93915393b219212c73": 1000000000000000000000000000	  
       }
   }
 }
