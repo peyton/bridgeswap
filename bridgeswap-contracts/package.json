@@ -34,8 +34,5 @@
     "lint:fix": "yarn prettier ./**/*.ts --write",
     "clean": "rimraf ./build/",
     "test": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && mocha"
-  },
-  "dependencies": {
-    "ts-node": "^10.4.0"
   }
 }
