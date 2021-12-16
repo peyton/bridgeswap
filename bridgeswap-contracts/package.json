@@ -8,6 +8,7 @@
   },
   "license": "Unlicense",
   "devDependencies": {
+    "@openzeppelin/contracts": "^4.4.1",
     "@types/chai": "^4.3.0",
     "@types/dockerode": "^3.3.0",
     "@types/mocha": "^9.0.0",

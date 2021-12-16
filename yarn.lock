@@ -14,6 +14,11 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
+"@openzeppelin/contracts@^4.4.1":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.4.1.tgz#3382db2cd83ab565ed9626765e7da92944b45de8"
+  integrity sha512-o+pHCf/yMLSlV5MkDQEzEQL402i6SoRnktru+0rdSxVEFZcTzzGhZCAtZjUFyKGazMSv1TilzMg+RbED1N8XHQ==
+
 "@sisi/ed25519-blake2b-hd-key@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@sisi/ed25519-blake2b-hd-key/-/ed25519-blake2b-hd-key-1.0.2.tgz#09be397681c6c012cc17f47e4ea97344e656ae45"
