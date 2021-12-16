@@ -318,26 +318,34 @@ contract Bridgeswap {
   // @param _deadline Height after which this swap can no longer be executed
   onMessage swapInput(tokenId _outputTokenId, uint256 _minOutput, uint256 _deadline) payable {
     require(height() <= _deadline);
-    // require(msg.tokenid == tokenA); // TODO: generalize
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(msg.tokenid, _outputTokenId);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
 
-    // require(msg.tokenid == tokenA || msg.tokenid == tokenB);
+    uint256 supplyA = _pair.tokenA == msg.tokenid ? _pair.supplyA : _pair.supplyB;
+    uint256 supplyB = _pair.tokenA == msg.tokenid ? _pair.supplyB : _pair.supplyA;
 
-    // uint256 tokenBBought = getInputPrice(msg.amount, supplyA, supplyB);
-    // require(tokenBBought <= supplyB);
-    // require(tokenBBought >= min_output);
+    uint256 tokenBBought = getInputPrice(msg.amount, supplyA, supplyB);
+    require(tokenBBought <= supplyB);
+    require(tokenBBought >= _minOutput);
 
-    // supplyA += msg.amount;
-    // supplyB -= tokenBBought;
+    if (_pair.tokenA == msg.tokenid) {
+      _pair.supplyA += msg.amount;
+      _pair.supplyB -= tokenBBought;
+    } else {
+      _pair.supplyA -= tokenBBought;
+      _pair.supplyB += msg.amount;
+    }
 
-    // msg.sender.transfer(tokenB, tokenBBought);
+    msg.sender.transfer(_outputTokenId, tokenBBought);
 
-    // emit Swap(
-    //   msg.sender,
-    //   tokenA,
-    //   msg.amount,
-    //   tokenB,
-    //   tokenBBought
-    // );
+    emit Swap(
+      msg.sender,
+      msg.tokenid,
+      msg.amount,
+      _outputTokenId,
+      tokenBBought
+    );
   }
 
   // @notice Buy tokens
@@ -347,27 +355,37 @@ contract Bridgeswap {
   // @param _deadline Height after which this swap can no longer be executed
   onMessage swapOutput(tokenId _outputTokenId, uint256 _numBought, uint256 _deadline) payable {
     require(height() <= _deadline);
-    // require(msg.tokenid == tokenA); // TODO: generalize
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(msg.tokenid, _outputTokenId);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
 
-    // require(msg.tokenid == tokenA || msg.tokenid == tokenB);
+    uint256 supplyA = _pair.tokenA == msg.tokenid ? _pair.supplyA : _pair.supplyB;
+    uint256 supplyB = _pair.tokenA == msg.tokenid ? _pair.supplyB : _pair.supplyA;
 
-    // uint256 tokenASold = getOutputPrice(num_bought, supplyA, supplyB);
-    // require(tokenASold <= msg.amount);
-    // require(num_bought <= supplyB);
+    uint256 tokenASold = getOutputPrice(_numBought, supplyA, supplyB);
+    require(tokenASold <= msg.amount);
+    require(_numBought <= supplyB);
 
-    // supplyA += tokenASold;
-    // supplyB -= num_bought;
+    if (_pair.tokenA == msg.tokenid) {
+      _pair.supplyA += tokenASold;
+      _pair.supplyB -= _numBought;
+    } else {
+      _pair.supplyA -= _numBought;
+      _pair.supplyB += tokenASold;
+    }
 
-    // msg.sender.transfer(tokenA, msg.amount - tokenASold);
-    // msg.sender.transfer(tokenB, num_bought);
+    if (msg.amount > tokenASold) {
+        msg.sender.transfer(msg.tokenid, msg.amount - tokenASold);
+    }
+    msg.sender.transfer(_outputTokenId, _numBought);
 
-    // emit Swap(
-    //   msg.sender,
-    //   tokenA,
-    //   tokenASold,
-    //   tokenB,
-    //   num_bought
-    // );
+    emit Swap(
+      msg.sender,
+      msg.tokenid,
+      tokenASold,
+      _outputTokenId,
+      _numBought
+    );
   }
 
   // --------------------
