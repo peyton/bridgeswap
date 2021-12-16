@@ -29,10 +29,10 @@
   },
   "scripts": {
     "accounts": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && ./node_modules/.bin/ts-node scripts/accounts.ts",
+    "stakeContract": "MNEMONIC='turtle siren orchard alpha indoor indicate wasp such waste hurt patient correct true firm goose elegant thunder torch hurt shield taste under basket burger' VITE_CONTRACTS_ROOT=\"$PWD/contracts\" ts-node scripts/stakeContract.ts",
     "lint": "yarn prettier ./**/*.ts --check",
     "lint:fix": "yarn prettier ./**/*.ts --write",
     "clean": "rimraf ./build/",
     "test": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && mocha"
-  },
-  "dependencies": {}
+  }
 }

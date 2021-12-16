@@ -120,7 +120,6 @@ contract SinglePair {
         require(msg.tokenid == tokenA); // TODO: generalize
 
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
-        require(height() <= deadline);
 
         uint256 tokenBBought = getInputPrice(msg.amount, supplyA, supplyB);
         require(tokenBBought <= supplyB);
@@ -148,7 +147,6 @@ contract SinglePair {
         require(msg.tokenid == tokenA); // TODO: generalize
 
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
-        require(height() <= deadline);
 
         uint256 tokenASold = getOutputPrice(num_bought, supplyA, supplyB);
         require(tokenASold <= msg.amount);

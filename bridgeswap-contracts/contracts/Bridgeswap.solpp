@@ -398,6 +398,30 @@ contract Bridgeswap {
   // Swapping
   // --------------------
 
+  // @dev Query current buy rate for a given pair
+  getter getBuyRate(tokenId _tokenIdIn, uint256 _amountIn, tokenId _tokenIdOut) view returns (uint256) {
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenIdIn, _tokenIdOut);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
+    require(_pair.totalPoolSupply > 0);
+    
+    uint256 _inputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyA : _pair.supplyB;
+    uint256 _outputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyB : _pair.supplyA;
+    return getInputPrice(_amountIn, _inputSupply, _outputSupply);
+  }
+
+  // @dev Query current sell rate for a given pair
+  getter getSellRate(tokenId _tokenIdOut, uint256 _amountOut, tokenId _tokenIdIn) view returns (uint256) {
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenIdIn, _tokenIdOut);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
+    require(_pair.totalPoolSupply > 0);
+    
+    uint256 _inputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyA : _pair.supplyB;
+    uint256 _outputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyB : _pair.supplyA;
+    return getOutputPrice(_amountOut, _inputSupply, _outputSupply);
+  }
+
   // @dev Pricing function for converting between token A and token B
   // @param input_amount Amount of token A or token B being sold.
   // @param input_reserve Amount of token A or token B (input type) in exchange reserves.
@@ -431,6 +455,7 @@ contract Bridgeswap {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(msg.tokenid, _outputTokenId);
     Pair storage _pair = pairs[_tokenA][_tokenB];
     require(_pair.initialized);
+    require(_pair.totalPoolSupply > 0);
 
     uint256 supplyA = _pair.tokenA == msg.tokenid ? _pair.supplyA : _pair.supplyB;
     uint256 supplyB = _pair.tokenA == msg.tokenid ? _pair.supplyB : _pair.supplyA;
@@ -468,6 +493,7 @@ contract Bridgeswap {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(msg.tokenid, _outputTokenId);
     Pair storage _pair = pairs[_tokenA][_tokenB];
     require(_pair.initialized);
+    require(_pair.totalPoolSupply > 0);
 
     uint256 supplyA = _pair.tokenA == msg.tokenid ? _pair.supplyA : _pair.supplyB;
     uint256 supplyB = _pair.tokenA == msg.tokenid ? _pair.supplyB : _pair.supplyA;

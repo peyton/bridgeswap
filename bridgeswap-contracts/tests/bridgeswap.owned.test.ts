@@ -19,11 +19,11 @@ describe('bridgeswap tests', () => {
     let compileResult: CompileResult
     const firstAccount = accounts[0]
     const secondAccount = accounts[1]
-    
+
     before('create provider', () => {
       provider = newProvider(config.networks.local.url)
     })
-  
+
     before('compile Bridgeswap', async () => {
       await mine(provider)
       compileResult = await compile("Bridgeswap.solpp")
@@ -62,20 +62,20 @@ describe('bridgeswap tests', () => {
           responseLatency: 1
         }
       )
-  
+
       const contract = new DeployedContract(
         provider,
         receiveBlock.address,
         compileResult.abis[0],
         compileResult.offChainCodes[0]
       )
-  
+
       return { contract }
     }
 
     it('deploys with owner', async () => {
       const { contract } = await _deployContract()
-      
+
       const ownerResponse = await contract.callOffChain('owner', [])
       expect(ownerResponse).to.be.not.null
       expect(ownerResponse![0]).equal(firstAccount.address)
@@ -99,7 +99,7 @@ describe('bridgeswap tests', () => {
 
     it('non-owner cannot change owner', async () => {
       const { contract } = await _deployContract()
-      
+
       await contract.awaitCall(
         secondAccount.address,
         secondAccount.privateKey,
