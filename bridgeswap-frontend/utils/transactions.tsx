@@ -20,7 +20,7 @@ export async function sendTransactionAsync(accounts, vbInstanceG: Connector, ...
 }
 
 export async function callOnChain(accounts, provider, vbInstance, method, params = [], tokenId = "tti_5649544520544f4b454e6e40", amount = '0') {
-  console.log(params)
+  console.log(method, params, tokenId, amount)
   const block = accountBlock.createAccountBlock('callContract', {
     address: accounts[0],
     abi: contract_abi,

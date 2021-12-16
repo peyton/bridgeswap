@@ -38,15 +38,20 @@ function _tokenAmount(amount: number | string | BigNumber, tokenInfo: TokenInfo)
   return (new BigNumber(amount)).shiftedBy(tokenInfo.decimals)
 }
 
+function _displayAmount(tokenAmount: number | string | BigNumber, tokenInfo: TokenInfo) {
+  return (new BigNumber(tokenAmount)).shiftedBy(-tokenInfo.decimals)
+}
+
 const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: PoolProps) => {
 
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>();
   const [tokenA, setTokenA] = useState<string[]>([]);
   const [tokenB, setTokenB] = useState<string[]>([]);
   const [tokensChosen, setTokensChosen] = useState(false);
-  const [bankBalanceA, setBankBalanceA] = useState<number | undefined>(undefined);
-  const [bankBalanceB, setBankBalanceB] = useState<number | undefined>(undefined);
-  const [liquidity, setLiquidity] = useState<number | undefined>(undefined);
+  const [outputAmount, setOutputAmount] = useState("0");
+  const [outputQuote, setOutputQuote] = useState("");
+  const [maxInput, setMaxInput] = useState("0");
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     const getalltokens = async () => {
@@ -70,63 +75,13 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
     })
   }, [])
 
-  function updateBalancesAB() {
-    callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenA[0]).tokenId]).then(setBankBalanceA);
-    callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenB[0]).tokenId]).then(setBankBalanceB);
-    updateLiquidityStakeAB()
-  }
-
-  function updateLiquidityStakeAB() {
-    const tokenIds = [tokenMap.get(tokenA[0]).tokenId, tokenMap.get(tokenB[0]).tokenId]
-    callOffChain(accounts, provider, "getLiquidityPoolBalance", [accounts[0], tokenIds[0], tokenIds[1]]).then(setLiquidity);
-  }
-
-
-
   const chooseTokens = async () => {
     if (tokenA.length > 0 && tokenB.length > 0 && tokenA[0] !== tokenB[0] && tokenA[0].length > 0 && tokenB[0].length > 0) {
       setTokensChosen(true);
-    } // TODO: Don't fail silently here
-
-    updateBalancesAB();
-    updateLiquidityStakeAB();
-  }
-
-  function deposit(token, amount: number | string | BigNumber) {
-    if (!tokenMap) {
-      console.error('Token map not loaded')
-      return
     }
-    const tokenInfo: TokenInfo = tokenMap.get(token)!
-    if (!tokenInfo) {
-      console.error(`No info for token ${token}`)
-      return
-    }
-    console.log(`Depositing ${amount} of ${tokenInfo.tokenId}`)
-    const amountInTokenUnits = _tokenAmount(amount, tokenInfo)
-    callOnChain(
-      accounts,
-      provider,
-      vbInstance,
-      "deposit",
-      [],
-      tokenInfo.tokenId,
-      amountInTokenUnits.toString()
-    ).then((result) => console.log(result)).catch((err) => console.log(err));
-  }
-
-  function addLiquidity() {
-    updateBalancesAB();
-    if (bankBalanceA == 0 || bankBalanceB == 0) {
-      return window.alert('Deposit more tokens - each must have a nonzero balance')
-    }
+    // Get price from contract
+    const token = tokenA[0];
     const tokenIds = [tokenMap.get(tokenA[0]).tokenId, tokenMap.get(tokenB[0]).tokenId]
-    callOnChain(accounts, provider, vbInstance, "addLiquidity", [tokenIds[0], bankBalanceA.toString(), tokenIds[1], bankBalanceB.toString(), "1000000"]).then((result) => {
-      updateLiquidityStakeAB();
-    });
-  }
-
-  function formatToken(token, amount) {
     if (!tokenMap) {
       console.error('Token map not loaded')
       return
@@ -136,33 +91,51 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
       console.error(`No info for token ${token}`)
       return
     }
-    const amountInTokenUnits = _tokenAmount(amount, tokenInfo)
-    return amountInTokenUnits.toString()
+    callOffChain(accounts, provider, "getSellRate", [tokenIds[0], _tokenAmount(outputAmount, tokenInfo).toString(), tokenIds[1]]).then(setOutputQuote);
   }
 
-  function withdraw(token, amount: number | string | BigNumber) {
-    if (!tokenMap) {
-      console.error('Token map not loaded')
-      return
-    }
-    const tokenInfo: TokenInfo = tokenMap.get(token)!
-    if (!tokenInfo) {
-      console.error(`No info for token ${token}`)
-      return
-    }
-    const amountInTokenUnits = _tokenAmount(amount, tokenInfo)
-    callOnChain(accounts, provider, vbInstance, "withdraw", [amountInTokenUnits.toString(), tokenInfo.tokenId])
-  }
-
-  function removeLiquidity() {
-    // removes all liquidity
+  function confirm() {
+    const token = tokenA[0];
     const tokenIds = [tokenMap.get(tokenA[0]).tokenId, tokenMap.get(tokenB[0]).tokenId]
-    callOnChain(accounts, provider, vbInstance, "removeLiquidity", [liquidity, tokenIds[0], "1", tokenIds[1], "1", "10000"]).then(updateLiquidityStakeAB);
+    if (!tokenMap) {
+      console.error('Token map not loaded')
+      return
+    }
+    const tokenInfo: TokenInfo = tokenMap.get(token)!
+    if (!tokenInfo) {
+      console.error(`No info for token ${token}`)
+      return
+    }
+    const token2 = tokenB[0];
+    const tokenInfo2: TokenInfo = tokenMap.get(token2)!
+    if (!tokenInfo) {
+      console.error(`No info for token ${token}`)
+      return
+    }
+    callOnChain(accounts, provider, vbInstance, "swapOutput", [tokenIds[0], _tokenAmount(outputAmount, tokenInfo).toString(), "100000000"], tokenIds[1], _tokenAmount(maxInput, tokenInfo2).toString()).then((result) => setConfirmed(true));
+  }
+
+  interface EventTarget {
+    value: string
+  }
+
+  interface InputEvent {
+    target: EventTarget
+  }
+
+
+  function handleInputChange(event: InputEvent) {
+    setOutputAmount(event.target.value)
+  }
+
+  function handleMaxChange(event: InputEvent) {
+    setMaxInput(event.target.value)
   }
 
   if (tokenMap === undefined || tokenMap.size == 0) {
     return <div>Loading tokens...</div>
   }
+  // Token A is the token being bought, token B is the token being sold
   // First, user selects token pair. Then they can deposit tokens, viewing their bank balance. Then they can add liquidity.  
   else if (tokenA.length == 0 || tokenB.length == 0 || !tokensChosen) {
     return (
@@ -185,37 +158,31 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
           selected={tokenB}
           placeholder="Select second token"
         />
+        <h1>How many do you want to buy?</h1>
+        <input type="text" value={outputAmount} onChange={handleInputChange} />
         <button onClick={chooseTokens}>Select</button>
       </div>
     )
   }
   // Next - user views current deposit amount for each, can deposit more as well.
-  // As well - user can explicitly add/remove liquidity  
-  else {
+  // As well - user can explicitly add/remove liquidity
+  else if (!confirmed) {
 
     return (
       <div>
-        <button onClick={pageNav}>Go to Pool</button>
-        <h1>Deposit Pairs</h1>
-        <div>
-          <h2>{tokenA[0]}</h2>
-          <p>Balance: {formatToken(tokenA[0], bankBalanceA)}</p>
-          <button onClick={() => deposit(tokenA[0], 10)}>Deposit 10 {tokenA[0]}</button>
-          <button onClick={() => withdraw(tokenA[0], 10)}>Withdraw 10 {tokenA[0]}</button>
-        </div>
-        <div>
-          <h2>{tokenB[0]}</h2>
-          <p>Balance: {formatToken(tokenB[0], bankBalanceB)}</p>
-          <button onClick={() => deposit(tokenB[0], 10)}>Deposit 10 {tokenB[0]}</button>
-          <button onClick={() => withdraw(tokenB[0], 10)}>Withdraw 10 {tokenB[0]}</button>
-        </div>
-        <button onClick={updateBalancesAB}>Update Balances</button>
-        <div>
-          <h2>Add Liquidity from balance</h2>
-          <p>Liquidity balance: {liquidity === undefined ? "loading..." : liquidity}</p>
-          <button onClick={addLiquidity}>Add balance to liquidity</button>
-          <button onClick={removeLiquidity}>remove all liquidity</button>
-        </div>
+        <h1>Confirm Swap</h1>
+        <p>Current exchange rate for {outputAmount} {tokenA[0]}: {_displayAmount(outputQuote, tokenMap.get(tokenB[0])).toString()} {tokenB[0]}</p>
+        <h1>Please set the max amount that you are willing to spend, including fees (probably close to this exchange rate)</h1>
+        <input type="text" value={maxInput} onChange={handleMaxChange} />
+        <button onClick={confirm}>Confirm</button>
+      </div>
+    )
+  }
+  else {
+    return (
+      <div>
+        <p>Success! Check your wallet transactions.</p>
+        <button onClick={pageNav}>Go to pool</button>
       </div>
     )
   }

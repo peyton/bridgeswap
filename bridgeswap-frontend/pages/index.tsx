@@ -20,7 +20,7 @@ const Home: NextPage = () => {
   const [accounts, setAccounts] = useState([]);
   const [contractAddress, setContractAddress] = useState("");
   const [contractSet, setContractSet] = useState(false);
-  const [pageNav, setPageNav] = useState("pool");
+  const [pageNav, setPageNav] = useState("swap");
   const [wsProvider, setWSProvider] = useState<typeof ViteAPI | undefined>(undefined);
 
   useEffect(() => {
@@ -52,18 +52,7 @@ const Home: NextPage = () => {
     setVBInstanceG(vbInstance)
   }, [])
 
-  interface EventTarget {
-    value: string
-  }
 
-  interface InputEvent {
-    target: EventTarget
-  }
-
-
-  function handleContractInputChange(event: InputEvent) {
-    setContractAddress(event.target.value)
-  }
 
   if (vbInstanceG === undefined || wsProvider === undefined) {
     return <div>Loading...</div>
@@ -83,8 +72,7 @@ const Home: NextPage = () => {
   }
   else {
     return (
-      <p>Swap</p>
-      //      <Swap vbInstance={vbInstanceG} accounts={accounts} />
+      <Swap vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} pageNav={() => setPageNav("pool")} />
     )
   }
 }
