@@ -271,7 +271,7 @@ describe('bridgeswap tests', () => {
       const finalBalanceB = await accountBalance(provider, firstAccount.address, tokenIdB)
       expect(initialBalanceA.sub(finalBalanceA)).to.equal(BigNumber.from('6000000000000000000'))
       expect(initialBalanceB.sub(finalBalanceB)).to.equal(BigNumber.from('8337502084375521094'))
-    }).timeout(60000)
+    }).timeout(90000)
 
     it('basic swap output, correct supply', async () => {
       await mine(provider)
@@ -403,6 +403,6 @@ describe('bridgeswap tests', () => {
       const finalBalanceB = await accountBalance(provider, firstAccount.address, tokenIdB)
       expect(initialBalanceA.sub(finalBalanceA)).to.equal(BigNumber.from('6000000000000000000'))
       expect(initialBalanceB.sub(finalBalanceB)).to.equal(BigNumber.from('8337502084375521094'))
-    }).timeout(60000)
+    }).timeout(90000)
   })
 })
