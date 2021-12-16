@@ -84,6 +84,7 @@ contract Bridgeswap {
   // Owned
   // --------------------
 
+  // @notice Change owner.
   onMessage changeOwner(address _newOwner) {
       require(msg.sender == owner && _newOwner != owner);
       owner = _newOwner;
@@ -94,6 +95,7 @@ contract Bridgeswap {
   // Pairs
   // --------------------
 
+  // @notice Adds new pairs when called by owner.
   onMessage addPair(tokenId _tokenAIn, tokenId _tokenBIn) {
     require(msg.sender == owner);
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
@@ -110,16 +112,19 @@ contract Bridgeswap {
     ));
   }
 
+  // @notice Total number of pairs.
   getter getPairCount() view returns (uint256) {
     return pairFlags.length;
   }
 
+  // @notice Retrieve the given pair as a tuple of tokenIds.
   getter getPairAtIndex(uint256 _index) view returns (tokenId, tokenId) {
     require(_index < pairFlags.length);
     PairFlag storage _pairFlag = pairFlags[_index];
     return (_pairFlag.tokenA, _pairFlag.tokenB);
   }
 
+  // @notice Order the given pair for lookups.
   function canonicalizePair(tokenId _tokenA, tokenId _tokenB) private pure returns (tokenId, tokenId) {
     require(_tokenA != _tokenB);
     
@@ -134,10 +139,12 @@ contract Bridgeswap {
   // Liquidity
   // --------------------
 
+  // @notice How many tokens of a given type are in the holding pool on behalf of this account.
   getter getHoldingPoolBalance(address _address, tokenId _token) view returns (uint256) {
     return holdingPool[_address][_token];
   }
 
+  // @notice Total supply of tokens for the given pair.
   getter getPairSupply(tokenId _tokenAIn, tokenId _tokenBIn) view returns (uint256, uint256) {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
     Pair storage _pair = pairs[_tokenA][_tokenB];
@@ -150,12 +157,14 @@ contract Bridgeswap {
     }
   }
 
+  // @notice Deposit sent tokens into the holding pool in preparation for adding liquidity.
   onMessage deposit() payable {
     require(msg.amount > 0);
     holdingPool[msg.sender][msg.tokenid] += msg.amount;
     emit Deposit(msg.sender, msg.tokenid, msg.amount);
   }
 
+  // @notice Withdraw tokens in the holding pool held on behalf of this account.
   onMessage withdraw(uint256 _amount, tokenId _token) {
     uint256 _senderBalance = holdingPool[msg.sender][_token];
     require(_amount <= _senderBalance);
