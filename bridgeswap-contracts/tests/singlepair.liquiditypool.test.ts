@@ -113,8 +113,6 @@ describe('single pair test', () => {
       expect(pairsupply![1]).equal('0');
 
     }).timeout(40000)
-
-    it('liquidity pool swaps unbalanced deposit on addLiquidity')
   })
 })
 

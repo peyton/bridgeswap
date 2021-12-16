@@ -23,7 +23,7 @@ import {
 } from '../src/token'
 import { type CompileResult } from '../src/solppc'
 import { ViteAPI } from "@vite/vitejs/distSrc/utils/type";
-import { sleep } from "../src/utils";
+import { balanceForTokenIdInBalances } from "./utils";
 
 
 describe('single pair test', () => {
@@ -44,10 +44,6 @@ describe('single pair test', () => {
       expect(compileResult.byteCodes).to.be.not.empty
       expect(compileResult.offChainCodes).to.be.not.empty
     })
-  
-    function _balanceForTokenIdInBalances(balances: { balanceInfoMap: any }, tokenId: any): BigNumber {
-      return BigNumber.from(balances.balanceInfoMap[tokenId].balance)
-    }
   
     async function _deployContract() {
       const { send: sendBlock, receive: receiveBlock } = await awaitDeployConfirmed(
@@ -179,8 +175,8 @@ describe('single pair test', () => {
   
       const { balance: initialBalances } = await provider.getBalanceInfo(firstAccount.address)
   
-      const initialBalanceTokenA = _balanceForTokenIdInBalances(initialBalances, tokenIdA)
-      const initialBalanceTokenB = _balanceForTokenIdInBalances(initialBalances, tokenIdB)
+      const initialBalanceTokenA = balanceForTokenIdInBalances(initialBalances, tokenIdA)
+      const initialBalanceTokenB = balanceForTokenIdInBalances(initialBalances, tokenIdB)
   
       await _call( 
         'deposit', 
@@ -214,8 +210,8 @@ describe('single pair test', () => {
   
       const { balance: finalBalances } = await provider.getBalanceInfo(firstAccount.address)
   
-      const finalBalanceTokenA = _balanceForTokenIdInBalances(finalBalances, tokenIdA)
-      const finalBalanceTokenB = _balanceForTokenIdInBalances(finalBalances, tokenIdB)
+      const finalBalanceTokenA = balanceForTokenIdInBalances(finalBalances, tokenIdA)
+      const finalBalanceTokenB = balanceForTokenIdInBalances(finalBalances, tokenIdB)
   
       expect(initialBalanceTokenA.sub(finalBalanceTokenA)).to.equal(BigNumber.from('6000000000000000000'))
       expect(initialBalanceTokenB.sub(finalBalanceTokenB)).to.equal(BigNumber.from('8337502084375521094'))
@@ -290,8 +286,8 @@ describe('single pair test', () => {
   
       const { balance: initialBalances } = await provider.getBalanceInfo(firstAccount.address)
   
-      const initialBalanceTokenA = _balanceForTokenIdInBalances(initialBalances, tokenIdA)
-      const initialBalanceTokenB = _balanceForTokenIdInBalances(initialBalances, tokenIdB)
+      const initialBalanceTokenA = balanceForTokenIdInBalances(initialBalances, tokenIdA)
+      const initialBalanceTokenB = balanceForTokenIdInBalances(initialBalances, tokenIdB)
   
   
       await _call( 
@@ -327,8 +323,8 @@ describe('single pair test', () => {
   
       const { balance: finalBalances } = await provider.getBalanceInfo(firstAccount.address)
   
-      const finalBalanceTokenA = _balanceForTokenIdInBalances(finalBalances, tokenIdA)
-      const finalBalanceTokenB = _balanceForTokenIdInBalances(finalBalances, tokenIdB)
+      const finalBalanceTokenA = balanceForTokenIdInBalances(finalBalances, tokenIdA)
+      const finalBalanceTokenB = balanceForTokenIdInBalances(finalBalances, tokenIdB)
   
       expect(initialBalanceTokenA.sub(finalBalanceTokenA)).to.equal(BigNumber.from('6000000000000000000'))
       expect(initialBalanceTokenB.sub(finalBalanceTokenB)).to.equal(BigNumber.from('8337502084375521094'))
