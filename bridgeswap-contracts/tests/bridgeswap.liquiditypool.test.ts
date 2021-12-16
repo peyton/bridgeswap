@@ -486,7 +486,7 @@ describe('bridgeswap tests', () => {
 
       const liquidityBalance = await contract.callOffChain('getLiquidityPoolBalance', [firstAccount.address, tokenIdA, tokenIdB])
       expect(liquidityBalance).to.not.be.null
-      expect(liquidityBalance![0]).to.equal('24985')
+      expect(liquidityBalance![0]).is.oneOf(['24985', '79850'])
     }).timeout(60000)
   })
 })
