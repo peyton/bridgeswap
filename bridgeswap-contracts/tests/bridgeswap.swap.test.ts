@@ -16,7 +16,7 @@ import { accountBalance } from './utils'
 import { BigNumber } from 'ethers'
 
 describe('bridgeswap tests', () => {
-  describe('pair liquidity pool tests', function() {
+  describe('pair swap tests', function() {
     this.timeout(20000)
     let provider: ViteAPI
     let compileResult: CompileResult
@@ -141,7 +141,8 @@ describe('bridgeswap tests', () => {
       return { contract, pairA, pairB }
     }
 
-    it('holding pool roundtrip', async () => {
+    it('basic swap input, correct supply', async () => {
+      await mine(provider)
       const { contract } = await _deployContractAndAddPairs()
       async function _call(methodName: string, params: any[], props: CallProps) {
         return contract.awaitCall(
@@ -152,46 +153,128 @@ describe('bridgeswap tests', () => {
           props
         )
       }
+  
+      await _call( 
+        'deposit', 
+        [], 
+        { tokenId: tokenIdA, amount: '5000000000000000000' }
+      )
+      await _call(  
+        'deposit', 
+        [], 
+        { tokenId: tokenIdB, amount: '10000000000000000000' }
+      )
+      await _call( 
+        'addLiquidity', 
+        [ 
+          tokenIdA, 
+          '5000000000000000000', 
+          tokenIdB,
+          '10000000000000000000', 
+          '4924389293'
+        ], 
+        {}
+      )
+      
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await _call(
+        'swapInput',
+        [
+          tokenIdB,
+          '1', 
+          '48934'
+        ],
+        { tokenId: tokenIdA, amount: '1000000000000000000' }
+      )
+  
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      let supplyAfter = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB]);
+      expect(supplyAfter).to.not.be.null
+      expect(supplyAfter![0]).equal('6000000000000000000');
+      expect(supplyAfter![1]).equal('8337502084375521094');
+    }).timeout(60000)
 
+    it('basic swap input, correct account balance', async () => {
+      await mine(provider)
+      const { contract } = await _deployContractAndAddPairs()
+      async function _call(methodName: string, params: any[], props: CallProps) {
+        return contract.awaitCall(
+          firstAccount.address,
+          firstAccount.privateKey,
+          methodName,
+          params,
+          props
+        )
+      }
+  
       await awaitReceiveAll(provider, firstAccount.address, firstAccount.privateKey)
       const initialBalanceA = await accountBalance(provider, firstAccount.address, tokenIdA)
       const initialBalanceB = await accountBalance(provider, firstAccount.address, tokenIdB)
 
-      await _call('deposit', [], { tokenId: tokenIdA, amount: '1' })
-      await _call('deposit', [], { tokenId: tokenIdB, amount: '2' })
+      await _call(
+        'deposit', 
+        [], 
+        { tokenId: tokenIdA, amount: '5000000000000000000' }
+      )
+      await _call(  
+        'deposit', 
+        [], 
+        { tokenId: tokenIdB, amount: '10000000000000000000' }
+      )
+      await _call( 
+        'addLiquidity', 
+        [ 
+          tokenIdA, 
+          '5000000000000000000', 
+          tokenIdB,
+          '10000000000000000000', 
+          '4924389293'
+        ], 
+        {}
+      )
+      
       await mine(provider)
       await mine(provider)
-
-
       await mine(provider)
       await mine(provider)
-      const interimPoolA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdA])
-      expect(interimPoolA).to.not.be.null
-      expect(interimPoolA![0]).equal('1')
-
-      const interimPoolB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
-      expect(interimPoolB).to.not.be.null
-      expect(interimPoolB![0]).equal('2')
-
-      await awaitReceiveAll(provider, firstAccount.address, firstAccount.privateKey)
-      const interimBalanceA = await accountBalance(provider, firstAccount.address, tokenIdA)
-      const interimBalanceB = await accountBalance(provider, firstAccount.address, tokenIdB)
-      expect(initialBalanceA.sub(interimBalanceA)).to.equal(BigNumber.from('1'))
-      expect(initialBalanceB.sub(interimBalanceB)).to.equal(BigNumber.from('2'))
-
-      await _call('withdraw', [ '1', tokenIdA ], {})
-      await _call('withdraw', [ '2', tokenIdB ], {})
+      await _call(
+        'swapInput',
+        [
+          tokenIdB,
+          '1', 
+          '48934'
+        ],
+        { tokenId: tokenIdA, amount: '1000000000000000000' }
+      )
+  
       await mine(provider)
       await mine(provider)
-
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      
       await awaitReceiveAll(provider, firstAccount.address, firstAccount.privateKey)
       const finalBalanceA = await accountBalance(provider, firstAccount.address, tokenIdA)
       const finalBalanceB = await accountBalance(provider, firstAccount.address, tokenIdB)
-      expect(finalBalanceA).to.equal(initialBalanceA)
-      expect(finalBalanceB).to.equal(initialBalanceB)
+      expect(initialBalanceA.sub(finalBalanceA)).to.equal(BigNumber.from('6000000000000000000'))
+      expect(initialBalanceB.sub(finalBalanceB)).to.equal(BigNumber.from('8337502084375521094'))
     }).timeout(60000)
 
-    it('open a liquidity pool', async () => {
+    it('basic swap output, correct supply', async () => {
+      await mine(provider)
       const { contract } = await _deployContractAndAddPairs()
       async function _call(methodName: string, params: any[], props: CallProps) {
         return contract.awaitCall(
@@ -202,42 +285,60 @@ describe('bridgeswap tests', () => {
           props
         )
       }
-
-      await _call('deposit', [], { tokenId: tokenIdA, amount: '1' })
-      await _call('deposit', [], { tokenId: tokenIdB, amount: '2' })
-      await mine(provider)
-      await mine(provider)
-
-      await _call(
-        'addLiquidity',
-        [
-          tokenIdA,
-          '1',
+  
+      await _call( 
+        'deposit', 
+        [], 
+        { tokenId: tokenIdA, amount: '5000000000000000000' }
+      )
+      await _call(  
+        'deposit', 
+        [], 
+        { tokenId: tokenIdB, amount: '10000000000000000000' }
+      )
+      await _call( 
+        'addLiquidity', 
+        [ 
+          tokenIdA, 
+          '5000000000000000000', 
           tokenIdB,
-          '2',
-          '3924849'
-        ],
+          '10000000000000000000', 
+          '4924389293'
+        ], 
         {}
       )
       
       await mine(provider)
       await mine(provider)
-      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdA])
-      expect(balanceA).to.not.be.null
-      expect(balanceA![0]).equal('0')
-
-      const balanceB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
-      expect(balanceB).to.not.be.null
-      expect(balanceB![0]).equal('0')
-
-      const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
-      expect(pairSupply).to.not.be.null
-      expect(pairSupply![0]).to.equal('1')
-      expect(pairSupply![1]).to.equal('2')
+      await mine(provider)
+      await mine(provider)
+      await _call(
+        'swapOutput',
+        [
+          tokenIdB,
+          '1662497915624478906', 
+          '48934'
+        ],
+        { tokenId: tokenIdA, amount: '2000000000000000000' }
+      )
+  
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      let supplyAfter = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB]);
+      expect(supplyAfter).to.not.be.null
+      expect(supplyAfter![0]).equal('6000000000000000000');
+      expect(supplyAfter![1]).equal('8337502084375521094');
     }).timeout(60000)
 
-    it('remove liquidity from pool', async () => {
-      const { contract, pairA, pairB } = await _deployContractAndAddPairs()
+    it('basic swap output, correct account balance', async () => {
+      await mine(provider)
+      const { contract } = await _deployContractAndAddPairs()
       async function _call(methodName: string, params: any[], props: CallProps) {
         return contract.awaitCall(
           firstAccount.address,
@@ -247,182 +348,61 @@ describe('bridgeswap tests', () => {
           props
         )
       }
-
+  
       await awaitReceiveAll(provider, firstAccount.address, firstAccount.privateKey)
       const initialBalanceA = await accountBalance(provider, firstAccount.address, tokenIdA)
       const initialBalanceB = await accountBalance(provider, firstAccount.address, tokenIdB)
 
-      await _call('deposit', [], { tokenId: tokenIdA, amount: '1' })
-      await _call('deposit', [], { tokenId: tokenIdB, amount: '2' })
-      await mine(provider)
-      await mine(provider)
       await _call(
-        'addLiquidity',
-        [
-          tokenIdA,
-          '1',
+        'deposit', 
+        [], 
+        { tokenId: tokenIdA, amount: '5000000000000000000' }
+      )
+      await _call(  
+        'deposit', 
+        [], 
+        { tokenId: tokenIdB, amount: '10000000000000000000' }
+      )
+      await _call( 
+        'addLiquidity', 
+        [ 
+          tokenIdA, 
+          '5000000000000000000', 
           tokenIdB,
-          '2',
-          '3924849'
-        ],
+          '10000000000000000000', 
+          '4924389293'
+        ], 
         {}
       )
       
       await mine(provider)
       await mine(provider)
-
-      const liquidityProvidedResponse = await contract.callOffChain('getLiquidityPoolBalance', [firstAccount.address, tokenIdA, tokenIdB])
-      expect(liquidityProvidedResponse).is.not.null
-      const liquidityProvided = liquidityProvidedResponse![0]
-
+      await mine(provider)
+      await mine(provider)
       await _call(
-        'removeLiquidity',
+        'swapOutput',
         [
-          liquidityProvided,
-          tokenIdA,
-          '1',
           tokenIdB,
-          '1',
-          '394893492'
+          '1662497915624478906', 
+          '48934'
         ],
-        {}
+        { tokenId: tokenIdA, amount: '2000000000000000000' }
       )
-
+  
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      
       await awaitReceiveAll(provider, firstAccount.address, firstAccount.privateKey)
       const finalBalanceA = await accountBalance(provider, firstAccount.address, tokenIdA)
       const finalBalanceB = await accountBalance(provider, firstAccount.address, tokenIdB)
-      expect(finalBalanceA).to.equal(initialBalanceA)
-      expect(finalBalanceB).to.equal(initialBalanceB)
+      expect(initialBalanceA.sub(finalBalanceA)).to.equal(BigNumber.from('6000000000000000000'))
+      expect(initialBalanceB.sub(finalBalanceB)).to.equal(BigNumber.from('8337502084375521094'))
     }).timeout(60000)
-
-    it('add liquidity to existing pool', async () => {
-      const { contract } = await _deployContractAndAddPairs()
-      async function _call(methodName: string, params: any[], props: CallProps) {
-        return contract.awaitCall(
-          firstAccount.address,
-          firstAccount.privateKey,
-          methodName,
-          params,
-          props
-        )
-      }
-
-      await _call('deposit', [], { tokenId: tokenIdA, amount: '20000' })
-      await _call('deposit', [], { tokenId: tokenIdB, amount: '50000' })
-      await mine(provider)
-      await mine(provider)
-
-      await _call(
-        'addLiquidity',
-        [
-          tokenIdA,
-          '10000',
-          tokenIdB,
-          '20000',
-          '3924849'
-        ],
-        {}
-      ) // 1:2 ratio
-
-      await _call(
-        'addLiquidity',
-        [
-          tokenIdA,
-          '10000',
-          tokenIdB,
-          '30000',
-          '3924849'
-        ],
-        {}
-      ) // should still be 1:2 ratio
-      
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdA])
-      expect(balanceA).to.not.be.null
-      expect(balanceA![0]).equal('0')
-      const balanceB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
-      expect(balanceB).to.not.be.null
-      expect(balanceB![0]).equal('9999')
-
-      const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
-      expect(pairSupply).to.not.be.null
-      expect(pairSupply![0]).to.equal('20000')
-      expect(pairSupply![1]).to.equal('40001')
-    }).timeout(60000)
-
-    it('add liquidity to existing pool, swapping token order', async () => {
-      const { contract } = await _deployContractAndAddPairs()
-      async function _call(methodName: string, params: any[], props: CallProps) {
-        return contract.awaitCall(
-          firstAccount.address,
-          firstAccount.privateKey,
-          methodName,
-          params,
-          props
-        )
-      }
-
-      await _call('deposit', [], { tokenId: tokenIdA, amount: '20000' })
-      await _call('deposit', [], { tokenId: tokenIdB, amount: '50000' })
-      await mine(provider)
-      await mine(provider)
-
-      await _call(
-        'addLiquidity',
-        [
-          tokenIdA,
-          '10000',
-          tokenIdB,
-          '20000',
-          '3924849'
-        ],
-        {}
-      ) // 1:2 ratio
-
-      await _call(
-        'addLiquidity',
-        [
-          tokenIdB,
-          '19999',
-          tokenIdA,
-          '10000',
-          '3924849'
-        ],
-        {}
-      ) // should still be ~1:2 ratio
-      
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      await mine(provider)
-      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdA])
-      expect(balanceA).to.not.be.null
-      expect(balanceA![0]).equal('0')
-      const balanceB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
-      expect(balanceB).to.not.be.null
-      expect(balanceB![0]).equal('10001')
-
-      const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
-      expect(pairSupply).to.not.be.null
-      expect(pairSupply![0]).to.equal('20000')
-      expect(pairSupply![1]).to.equal('39999')
-    }).timeout(60000)
-
-    it('liquidity pool swaps unbalanced deposit on addLiquiditySwap')
   })
 })
