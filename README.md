@@ -4,8 +4,8 @@
 
 ### bridgeswap-contracts
 
-Smart contracts powering Bridgeswap
+Smart contracts powering Bridgeswap. [README](bridgeswap-contracts/README.md).
 
 ### bridgeswap-frontend
 
-Frontend for the Bridgeswap Dapp
+Frontend for the Bridgeswap Dapp. [README](bridgeswap-frontend/README.md).
