@@ -123,6 +123,20 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
     });
   }
 
+  function withdraw(token, amount: number | string | BigNumber) {
+    if (!tokenMap) {
+      console.error('Token map not loaded')
+      return
+    }
+    const tokenInfo: TokenInfo = tokenMap.get(token)!
+    if (!tokenInfo) {
+      console.error(`No info for token ${token}`)
+      return
+    }
+    const amountInTokenUnits = _tokenAmount(amount, tokenInfo)
+    callOnChain(accounts, provider, vbInstance, "withdraw", [amountInTokenUnits.toString(), tokenInfo.tokenId])
+  }
+
   if (tokenMap === undefined || tokenMap.size == 0) {
     return <div>Loading tokens...</div>
   }
@@ -162,11 +176,13 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
           <h2>{tokenA[0]}</h2>
           <p>Balance: {bankBalanceA}</p>
           <button onClick={() => deposit(tokenA[0], 10)}>Deposit 10 {tokenA[0]}</button>
+          <button onClick={() => withdraw(tokenA[0], 10)}>Withdraw 10 {tokenA[0]}</button>
         </div>
         <div>
           <h2>{tokenB[0]}</h2>
           <p>Balance: {bankBalanceB}</p>
           <button onClick={() => deposit(tokenB[0], 10)}>Deposit 10 {tokenB[0]}</button>
+          <button onClick={() => withdraw(tokenB[0], 10)}>Withdraw 10 {tokenB[0]}</button>
         </div>
         <button onClick={updateBalancesAB}>Update Balances</button>
         <div>
