@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Typeahead } from 'react-bootstrap-typeahead'
 import 'react-bootstrap-typeahead/css/Typeahead.css'
 import { callOnChain, callOffChain } from '../utils/transactions'
+import BigNumber from 'bignumber.js'
+BigNumber.config({ EXPONENTIAL_AT: [-100, 100] })
 
 interface PoolProps {
   vbInstance: Connector;
@@ -28,6 +30,11 @@ interface TokenInfo {
 interface TokenInfoListResponse {
   tokenInfoList: TokenInfo[],
   totalCount: number
+}
+
+// @dev Returns `amount` shifted by the number of decimals in tokenInfo.
+function _tokenAmount(amount: number | string | BigNumber, tokenInfo: TokenInfo) {
+  return (new BigNumber(amount)).shiftedBy(tokenInfo.decimals)
 }
 
 const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) => {
@@ -74,10 +81,27 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
     updateBalancesAB();
   }
 
-  function deposit(token) {
-    const this_id = tokenMap.get(token).tokenId
-    console.log("Depositing", this_id)
-    callOnChain(accounts, provider, vbInstance, "deposit", [], tokenMap.get(token).tokenId, "1000000000000000000").then((result) => console.log(result)).catch((err) => console.log(err));
+  function deposit(token, amount: number | string | BigNumber) {
+    if (!tokenMap) {
+      console.error('Token map not loaded')
+      return
+    }
+    const tokenInfo: TokenInfo = tokenMap.get(token)!
+    if (!tokenInfo) {
+      console.error(`No info for token ${token}`)
+      return
+    }
+    console.log(`Depositing ${amount} of ${tokenInfo.tokenId}`)
+    const amountInTokenUnits = _tokenAmount(amount, tokenInfo)
+    callOnChain(
+      accounts,
+      provider,
+      vbInstance,
+      "deposit",
+      [],
+      tokenInfo.tokenId,
+      amountInTokenUnits.toString()
+    ).then((result) => console.log(result)).catch((err) => console.log(err));
   }
 
   if (tokenMap === undefined || tokenMap.size == 0) {
@@ -118,12 +142,12 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
         <div>
           <h2>{tokenA[0]}</h2>
           <p>Balance: {bankBalanceA}</p>
-          <button onClick={() => deposit(tokenA[0])}>Deposit 10 {tokenA[0]}</button>
+          <button onClick={() => deposit(tokenA[0], 10)}>Deposit 10 {tokenA[0]}</button>
         </div>
         <div>
           <h2>{tokenB[0]}</h2>
           <p>Balance: {bankBalanceB}</p>
-          <button onClick={() => deposit(tokenB[0])}>Deposit 10 {tokenB[0]}</button>
+          <button onClick={() => deposit(tokenB[0], 10)}>Deposit 10 {tokenB[0]}</button>
         </div>
       </div>
     )
