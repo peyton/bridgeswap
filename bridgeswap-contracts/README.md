@@ -1,16 +1,26 @@
 # Bridgeswap V1 Contracts
 
+The main contract is located at `contracts/Bridgeswap.solpp`.
+
+Automated tests are defined in `tests/`.
+
 ## Local development
 
-The following image should be run when deploying locally:
+### Install dependencies
+
+`yarn`
+
+### Running locally
+
+The following container should be run from this directory when deploying locally:
 
 ```
 docker run -v "$(pwd)"/conf:/home_conf:ro -p 0.0.0.0:48132:48132 -p 0.0.0.0:41420:41420 -p 0.0.0.0:8484:8484 -p 0.0.0.0:8483:8383 --rm vitelabs/gvite-nightly:v2.11.1-latest virtual --config /home_conf/node_config.json
 ```
 
-### Install dependencies
+To deploy locally, run
 
-`yarn`
+`yarn stakeContract`
 
 ### List accounts
 
