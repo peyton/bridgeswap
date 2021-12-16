@@ -240,40 +240,50 @@ contract Bridgeswap {
   // @param _deadline Time after which this transaction can no longer be executed.
   onMessage removeLiquidity(
     uint256 _amount,
-    tokenId _tokenA,
+    tokenId _tokenAIn,
     uint256 _minTokenA,
-    tokenId _tokenB,
+    tokenId _tokenBIn,
     uint256 _minTokenB,
     uint256 _deadline
   ) {
     require(height() <= _deadline);
-    // require(amount <= totalPoolSupply);
 
-    // uint256 amountTokenA = amount * supplyA / totalPoolSupply;
-    // uint256 amountTokenB = amount * supplyB / totalPoolSupply;
-    // require(amountTokenA >= minTokenA);
-    // require(amountTokenB >= minTokenB);
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
+    require(_amount <= _pair.totalPoolSupply);
 
-    // // Remove from pool
-    // require(poolBalances[msg.sender] >= amount);
-    // poolBalances[msg.sender] -= amount;
+    uint256 supplyA = _pair.tokenA == _tokenAIn ? _pair.supplyA : _pair.supplyB;
+    uint256 supplyB = _pair.tokenA == _tokenAIn ? _pair.supplyB : _pair.supplyA;
 
-    // // Remove from supply
-    // supplyA -= amountTokenA;
-    // supplyB -= amountTokenB;
-    // totalPoolSupply -= amount;
+    uint256 amountTokenA = amount * supplyA / _pair.totalPoolSupply;
+    uint256 amountTokenB = amount * supplyB / _pair.totalPoolSupply;
+    require(amountTokenA >= _minTokenA);
+    require(amountTokenB >= _minTokenB);
 
-    // // Return tokens to wallet
-    // msg.sender.transfer(tokenA, amountTokenA);
-    // msg.sender.transfer(tokenB, amountTokenB);
+    // Remove from pool
+    require(_pair.poolBalances[msg.sender] >= amount);
+    _pair.poolBalances[msg.sender] -= amount;
+    _pair.totalPoolSupply -= amount;
+    if (_pair.tokenA == _tokenAIn) {
+      _pair.supplyA -= amountTokenA;
+      _pair.supplyB -= amountTokenB;
+    } else {
+      _pair.supplyA -= amountTokenB;
+      _pair.supplyB -= amountTokenA;
+    }
 
-    // emit RemoveLiquidity(
-    //   msg.sender,
-    //   tokenA,
-    //   amountTokenA,
-    //   tokenB,
-    //   amountTokenB
-    // );
+    // Return tokens to wallet
+    msg.sender.transfer(_tokenAIn, amountTokenA);
+    msg.sender.transfer(_tokenBIn, amountTokenB);
+
+    emit RemoveLiquidity(
+      msg.sender,
+      _tokenAIn,
+      amountTokenA,
+      _tokenBIn,
+      amountTokenB
+    );
   }
 
   // --------------------
