@@ -3,8 +3,7 @@ import { constant, abi, accountBlock, utils, ViteAPI } from '@vite/vitejs';
 import { useState, useEffect } from 'react';
 import { Typeahead } from 'react-bootstrap-typeahead'
 import 'react-bootstrap-typeahead/css/Typeahead.css'
-import contract_abi from '../utils/abi'
-import sendTransactionAsync from '../utils/transactions'
+import { callOnChain, callOffChain } from '../utils/transactions'
 
 interface PoolProps {
   vbInstance: Connector;
@@ -62,36 +61,21 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
     })
   }, [])
 
+  function updateBalancesAB() {
+    callOffChain(accounts, provider, "getBalanceAddressToken", [accounts[0], tokenMap.get(tokenA[0]).tokenId]).then(setBankBalanceA);
+    callOffChain(accounts, provider, "getBalanceAddressToken", [accounts[0], tokenMap.get(tokenB[0]).tokenId]).then(setBankBalanceB);
+  }
+
   const chooseTokens = async () => {
     if (tokenA.length > 0 && tokenB.length > 0 && tokenA[0] !== tokenB[0] && tokenA[0].length > 0 && tokenB[0].length > 0) {
       setTokensChosen(true);
     } // TODO: Don't fail silently here
 
-    console.log(tokenMap)
+    updateBalancesAB();
+  }
 
-    // Replace the below with a simple offchain provider.request
-
-    const block = accountBlock.createAccountBlock('callContract', {
-      address: accounts[0],
-      abi: contract_abi,
-      toAddress: contractAddress,
-      methodName: "getBalanceAddressToken",
-      params: [accounts[0], tokenMap.get(tokenA[0]).tokenId]
-    });
-    console.log(block);
-
-    const r = await provider.request('contract_callOffChainMethod', {
-      "address": contractAddress,
-      "code": Buffer.from("608060405260043610610066576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680635fba01ca146100685780638e6d77a01461008d5780639f8fe856146100fd578063cdbd37b61461015257610066565b005b610070610174565b604051808381526020018281526020019250505060405180910390f35b6100e7600480360360408110156100a45760006000fd5b81019080803574ffffffffffffffffffffffffffffffffffffffffff169060200190929190803569ffffffffffffffffffff169060200190929190505050610191565b6040518082815260200191505060405180910390f35b61010561021a565b604051808369ffffffffffffffffffff1669ffffffffffffffffffff1681526020018269ffffffffffffffffffff1669ffffffffffffffffffff1681526020019250505060405180910390f35b61015a61025d565b604051808215151515815260200191505060405180910390f35b600060006003600050546004600050549150915061018d565b9091565b6000600760005060008474ffffffffffffffffffffffffffffffffffffffffff1674ffffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002160005060000160005060008369ffffffffffffffffffff1669ffffffffffffffffffff168152602001908152602001600021600050549050610214565b92915050565b60006000600260009054906101000a900469ffffffffffffffffffff166002600a9054906101000a900469ffffffffffffffffffff1691509150610259565b9091565b6000600260149054906101000a900460ff169050610276565b9056fea165627a7a72305820796422311ceab9e8ffcd94f6d0460b57a00f8ed0adf259abadaac0cd0bcdce590029", 'hex').toString('base64'),
-      "data": block.data
-    })
-    //      "code"<tokenMap.get(tokenA[0]).tokenId)
-
-
-    console.log(r)
-    console.log(abi.decodeParameter('uint256', Buffer.from(r, 'base64').toString('hex')))
-    // ^ This works, should be refactored
-
+  function deposit(token) {
+    callOnChain(accounts, vbInstance, "deposit", [], tokenMap.get(token).tokenId, 10).then((result) => console.log(result)).catch((err) => console.log(err));
   }
 
   if (tokenMap === undefined || tokenMap.size == 0) {
@@ -128,8 +112,17 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
 
     return (
       <div>
-        <h1>Choose Pairs</h1>
-
+        <h1>Deposit Pairs</h1>
+        <div>
+          <h2>{tokenA[0]}</h2>
+          <p>Balance: {bankBalanceA}</p>
+          <button onClick={() => deposit(tokenA[0])}>Deposit 10 {tokenA[0]}</button>
+        </div>
+        <div>
+          <h2>{tokenB[0]}</h2>
+          <p>Balance: {bankBalanceB}</p>
+          <button onClick={() => deposit(tokenB[0])}>Deposit 10 {tokenB[0]}</button>
+        </div>
       </div>
     )
   }

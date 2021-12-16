@@ -73,14 +73,6 @@ const Home: NextPage = () => {
       </div>
     )
   }
-  else if (contractAddress === "" || !contractSet) {
-    return (
-      <div>
-        <input type="text" value={contractAddress} onChange={handleContractInputChange} />
-        <button onClick={() => setContractSet(true)}>Submit</button>
-      </div>
-    )
-  }
   else if (pageNav == "pool") {
     return (
       <Pool vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} />
