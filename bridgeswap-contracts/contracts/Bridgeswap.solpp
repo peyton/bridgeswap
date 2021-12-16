@@ -143,7 +143,7 @@ contract Bridgeswap {
   }
 
   // @notice Get the amount of liquidity provided by address for a given pair.
-  // 
+  // @return The amount of liquidity provided.
   getter getLiquidityPoolBalance(address _address, tokenId _tokenAIn, tokenId _tokenBIn) view returns (uint256) {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
     Pair storage _pair = pairs[_tokenA][_tokenB];
@@ -168,46 +168,67 @@ contract Bridgeswap {
   ) {
     // TODO: implement swap fee
     require(height() <= _deadline);
-    // require(amountTokenA > 0);
-    // require(maxTokenB > 0);
+    require(_amountTokenA > 0);
+    require(_maxTokenB > 0);
 
-    // uint256 balanceA = bankAccounts[msg.sender].account[tokenA];
-    // uint256 balanceB = bankAccounts[msg.sender].account[tokenB];
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
 
-    // uint256 amountTokenB;
-    // uint256 liquidityAdded;
+    uint256 balanceA = holdingPool[msg.sender][_tokenAIn];
+    uint256 balanceB = holdingPool[msg.sender][_tokenBIn];
 
-    // if (totalPoolSupply > 0) {
-    //   // Add liquidity at current rate.
-    //   amountTokenB = amountTokenA * supplyB / supplyA + 1;
-    //   require(amountTokenB <= maxTokenB);
-    //   liquidityAdded = amountTokenA * totalPoolSupply / supplyA;
-    // } else {
-    //   // Initial liquidity for pair.
-    //   amountTokenB = min(maxTokenB, balanceB);
-    //   liquidityAdded = amountTokenA;
-    // }
-    // // Update bank balance 
-    // require((amountTokenA <= balanceA) && (amountTokenB <= balanceB));
-    // bankAccounts[msg.sender].account[tokenA] -= amountTokenA;
-    // bankAccounts[msg.sender].account[tokenB] -= amountTokenB;
+    uint256 amountTokenB;
+    uint256 liquidityAdded;
 
-    // // Mint pool tokens
-    // poolBalances[msg.sender] += liquidityAdded;
-    // totalPoolSupply += liquidityAdded;
+    uint256 supplyA = _pair.tokenA == _tokenAIn ? _pair.supplyA : _pair.supplyB;
+    uint256 supplyB = _pair.tokenA == _tokenAIn ? _pair.supplyB : _pair.supplyA;
 
-    // // Increment overall supply
-    // supplyA += amountTokenA;
-    // supplyB += amountTokenB;
+    if (_pair.totalPoolSupply > 0) {
+      // Add liquidity at current rate.
+      amountTokenB = _amountTokenA * supplyB / supplyA + 1;
+      require(amountTokenB <= _maxTokenB);
+      if (_pair.tokenA == _tokenAIn) {
+        liquidityAdded = _amountTokenA * _pair.totalPoolSupply / supplyA;
+      } else {
+        liquidityAdded = amountTokenB * _pair.totalPoolSupply / supplyB;
+      }
+    } else {
+      // Initial liquidity for pair.
+      amountTokenB = min(_maxTokenB, balanceB);
+      if (_pair.tokenA == _tokenAIn) {
+        liquidityAdded = _amountTokenA;
+      } else {
+        liquidityAdded = amountTokenB;
+      }
+    }
 
-    // send(msg.sender, addedLiquidity(liquidityAdded));
-    // emit AddLiquidity(
-    //   msg.sender,
-    //   tokenA,
-    //   amountTokenA,
-    //   tokenB,
-    //   amountTokenB
-    // );
+    // Update holding pool
+    require((_amountTokenA <= balanceA) && (amountTokenB <= balanceB));
+    holdingPool[msg.sender][_tokenAIn] -= _amountTokenA;
+    holdingPool[msg.sender][_tokenBIn] -= amountTokenB;
+
+    // Mint liquidity tokens
+    _pair.poolBalances[msg.sender] += liquidityAdded;
+    _pair.totalPoolSupply += liquidityAdded;
+
+    // Increment overall supply
+    if (_pair.tokenA == _tokenAIn) {
+      _pair.supplyA += _amountTokenA;
+      _pair.supplyB += amountTokenB;
+    } else {
+      _pair.supplyA += amountTokenB;
+      _pair.supplyB += _amountTokenA;
+    }
+
+    send(msg.sender, addedLiquidity(liquidityAdded));
+    emit AddLiquidity(
+      msg.sender,
+      _tokenAIn,
+      _amountTokenA,
+      _tokenBIn,
+      amountTokenB
+    );
   }
 
   // @notice Withdraw tokens at current ratio.
