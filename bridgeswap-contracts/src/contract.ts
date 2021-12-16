@@ -222,3 +222,4 @@ export const awaitDeploy = _awaitDeploy
 export const awaitDeployConfirmed = _awaitDeployConfirmed
 export const autoReceive = _autoReceive
 export const deploy = _deploy
+export const stakeQuota = _stakeQuota

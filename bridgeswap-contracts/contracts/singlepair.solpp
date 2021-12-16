@@ -12,6 +12,9 @@ contract SinglePair {
         tokenId indexed tokenBId,
         uint256 tokenBAmount
     );
+    event ChangeOwner(
+        address indexed newOwner
+    );
     event Deposit(
         address indexed provider,
         tokenId indexed tokenid,
@@ -37,6 +40,7 @@ contract SinglePair {
         uint256 amounta
     );
 
+    address public owner;
     tokenId constant ZERO_TOKEN_ID = tokenId("tti_000000000000000000004cfd");
 
     bytes32 name = "Bridgeswap SinglePair";
@@ -49,19 +53,24 @@ contract SinglePair {
     uint256 supplyA = 0;
     uint256 supplyB = 0;
 
-    mapping(address => uint256) poolBalanceA;
-    mapping(address => uint256) poolBalanceB;
+    uint256 totalPoolSupply = 0;
+    mapping(address => uint256) poolBalances;
 
+    // Holding pool
     struct BankAccount { // Idk if we need the struct here, maybe there is more we can pack in here in the future though
         mapping(tokenId => uint256) account;
     }
 
+    constructor() public {
+        owner = msg.sender;
+    }
+
     mapping(address => BankAccount) bankAccounts;
-    getter supportedTokens()returns (tokenId, tokenId) {
+    getter supportedTokens() returns (tokenId, tokenId) {
         return (tokenA, tokenB);
     }
 
-    getter getPairSupply()returns (uint256, uint256) {
+    getter getPairSupply() returns (uint256, uint256) {
         return (supplyA, supplyB);
     }
 
@@ -112,8 +121,6 @@ contract SinglePair {
 
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
 
-        // TODO: pay liquidity providers
-
         uint256 tokenBBought = getInputPrice(msg.amount, supplyA, supplyB);
         require(tokenBBought <= supplyB);
         require(tokenBBought >= min_output);
@@ -140,8 +147,6 @@ contract SinglePair {
         require(msg.tokenid == tokenA); // TODO: generalize
 
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
-
-        // TODO: pay liquidity providers
 
         uint256 tokenASold = getOutputPrice(num_bought, supplyA, supplyB);
         require(tokenASold <= msg.amount);
@@ -170,31 +175,56 @@ contract SinglePair {
 
     onMessage withdraw(uint256 amount, tokenId token) {
         require(token == tokenA || token == tokenB);
-        uint256 balance = bankAccounts[msg.sender].account[token];
-        require(amount <= balance);
-        bankAccounts[msg.sender].account[token] = balance - amount;
+        uint256 senderBalance = bankAccounts[msg.sender].account[token];
+        require(amount <= senderBalance);
+        bankAccounts[msg.sender].account[token] -= amount;
         msg.sender.transfer(token, amount);
         emit Withdrawal(msg.sender, token, amount);
     }
 
-    onMessage addLiquidity(uint256 amountTokenA, uint256 amountTokenB) {
-        // TODO: Need to implement swap fee 
+    // @notice Move tokens from holding pool at current ratio.
+    // @param amountTokenA Number of token A added.
+    // @param maxTokenB Maximum number of token B added. Transaction fails if exceeded.
+    // @param deadline Time after which this transaction can no longer be executed.
+    // @return addedLiquidity The amount of liquidity added.
+    message addedLiquidity(uint256 amount);
+    onMessage addLiquidity(uint256 amountTokenA, uint256 maxTokenB, uint256 deadline) {
+        // TODO: implement swap fee
+
+        require(height() <= deadline);
+        require(amountTokenA > 0);
+        require(maxTokenB > 0);
+
         uint256 balanceA = bankAccounts[msg.sender].account[tokenA];
         uint256 balanceB = bankAccounts[msg.sender].account[tokenB];
 
-        require((amountTokenA <= balanceA) && (amountTokenB <= balanceB));
-        // Update pool balances
-        poolBalanceA[msg.sender] += amountTokenA;
-        poolBalanceB[msg.sender] += amountTokenB;
+        uint256 amountTokenB;
+        uint256 liquidityAdded;
 
-        // Remove amounts from bank balance
-        bankAccounts[msg.sender].account[tokenA] = balanceA - amountTokenA;
-        bankAccounts[msg.sender].account[tokenB] = balanceB - amountTokenB;
+        if (totalPoolSupply > 0) {
+            // Add liquidity at current rate.
+            amountTokenB = amountTokenA * supplyB / supplyA + 1;
+            require(amountTokenB <= maxTokenB);
+            liquidityAdded = amountTokenA * totalPoolSupply / supplyA;
+        } else {
+            // Initial liquidity for pair.
+            amountTokenB = min(maxTokenB, balanceB);
+            liquidityAdded = amountTokenA;
+        }
+        // Update bank balance 
+        require((amountTokenA <= balanceA) && (amountTokenB <= balanceB));
+        bankAccounts[msg.sender].account[tokenA] -= amountTokenA;
+        bankAccounts[msg.sender].account[tokenB] -= amountTokenB;
+
+        // Mint pool tokens
+        poolBalances[msg.sender] += liquidityAdded;
+        totalPoolSupply += liquidityAdded;
 
         // Increment overall supply
         supplyA += amountTokenA;
         supplyB += amountTokenB;
 
+        send(msg.sender, addedLiquidity(liquidityAdded));
         emit AddLiquidity(
             msg.sender,
             tokenA,
@@ -204,16 +234,28 @@ contract SinglePair {
         );
     }
 
-    onMessage removeLiquidity(uint256 amountTokenA, uint256 amountTokenB) {
-        require((amountTokenA <= poolBalanceA[msg.sender]) && (amountTokenB <= poolBalanceB[msg.sender]));
+    // @notice Withdraw tokens at current ratio.
+    // @param amount Amount of liquidity to remove.
+    // @param minTokenA Minimum number of token A removed.
+    // @param minTokenB Minimum number of token B removed.
+    // @param deadline Time after which this transaction can no longer be executed.
+    onMessage removeLiquidity(uint256 amount, uint256 minTokenA, uint256 minTokenB, uint256 deadline) {
+        require(height() <= deadline);
+        require(amount <= totalPoolSupply);
+
+        uint256 amountTokenA = amount * supplyA / totalPoolSupply;
+        uint256 amountTokenB = amount * supplyB / totalPoolSupply;
+        require(amountTokenA >= minTokenA);
+        require(amountTokenB >= minTokenB);
 
         // Remove from pool
-        poolBalanceA[msg.sender] -= amountTokenA;
-        poolBalanceB[msg.sender] -= amountTokenB;
+        require(poolBalances[msg.sender] >= amount);
+        poolBalances[msg.sender] -= amount;
 
         // Remove from supply
         supplyA -= amountTokenA;
         supplyB -= amountTokenB;
+        totalPoolSupply -= amount;
 
         // Return tokens to wallet
         msg.sender.transfer(tokenA, amountTokenA);
@@ -227,4 +269,27 @@ contract SinglePair {
             amountTokenB
         );
     }
+
+    // --------------------
+    // Owned
+    // --------------------
+
+    onMessage changeOwner(address newOwner) {
+        require(msg.sender == owner && newOwner != owner);
+        owner = newOwner;
+        emit ChangeOwner(newOwner);
+    }
+
+    // --------------------
+    // Utilities
+    // --------------------
+
+    function max(uint256 a, uint256 b) private pure returns (uint256) {
+        return a >= b ? a : b;
+    }
+
+    function min(uint256 a, uint256 b) private pure returns (uint256) {
+        return a < b ? a : b;
+    }
+
 }
