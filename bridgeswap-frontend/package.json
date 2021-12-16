@@ -1,6 +1,7 @@
 {
   "name": "bridgeswap-frontend",
   "private": true,
+  "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,6 +16,7 @@
     "next": "12.0.7",
     "postcss": "^8.4.5",
     "react": "17.0.2",
+    "react-bootstrap-typeahead": "^6.0.0-alpha.4",
     "react-dom": "17.0.2",
     "react-modal": "^3.14.4",
     "react-qr-code": "^2.0.3",

@@ -7,71 +7,27 @@ import Connector from '@vite/connector';
 import QRCode from "react-qr-code";
 import Modal from 'react-modal';
 import { constant, abi, accountBlock, utils, ViteAPI } from '@vite/vitejs';
+import Swap from '../components/swap'
+import Pool from '../components/pool'
 const { Contracts, Vite_TokenId } = constant;
+import { WS_RPC } from '@vite/vitejs-ws';
 //Modal.setAppElement('#root');
 
 const Home: NextPage = () => {
-  const [vbInstanceG, setVBInstanceG] = useState(undefined);
+  const [vbInstanceG, setVBInstanceG] = useState<Connector>(undefined);
   const [connectURI, connectURISet] = useState("");
-  const [connected, setConnected] = useState(false);
-  const [modalIsOpen, setIsOpen] = useState(false);
   const [accounts, setAccounts] = useState([]);
-
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  function closeModal() {
-    setIsOpen(false);
-  }
-  const testnethelloworldContract = "vite_a7e1e2330b8962e852289e951f649818ec62172576b4828933"
-  const helloWorldABI = [{ "constant": false, "inputs": [{ "name": "addr", "type": "address" }], "name": "SayHello", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "addr", "type": "address" }, { "indexed": false, "name": "amount", "type": "uint256" }], "name": "transfer", "type": "event" }]
-
-
-  async function sendTransactionAsync(...args: any): Promise<any> {
-    console.log("Sending transaction");
-    if (vbInstanceG === undefined) {
-      console.log("Instance is not ready yet");
-      return;
-    }
-    return new Promise((res, rej) => {
-      vbInstanceG.on('disconnect', () => {
-        rej("Request aborted due to disconnect.");
-      });
-
-      vbInstanceG.sendCustomRequest({ method: 'vite_signAndSendTx', params: args }).then((r: any) => {
-        vbInstanceG.updateSession();
-        res(r);
-      }).catch((e: any) => {
-        rej(e);
-      });
-    });
-  }
-
-  async function sendTx() {
-    console.log("SendTx");
-    if (vbInstanceG === undefined) {
-      console.log("Instance is not ready yet");
-      return;
-    }
-    let block = accountBlock.createAccountBlock("callContract", {
-      address: accounts[0],
-      toAddress: testnethelloworldContract,
-      methodName: "SayHello",
-      abi: helloWorldABI,
-      params: [accounts[0]],
-      tokenId: Vite_TokenId,
-      amount: '1000000000000000000'
-    });
-
-    const response = await sendTransactionAsync({ block: block.accountBlock });
-    console.log(response);
-  }
-
-
-
+  const [contractAddress, setContractAddress] = useState("");
+  const [contractSet, setContractSet] = useState(false);
+  const [pageNav, setPageNav] = useState("pool");
+  const [wsProvider, setWSProvider] = useState<typeof ViteAPI | undefined>(undefined);
 
   useEffect(() => {
+    const wsrpc = new WS_RPC('ws://localhost:41420');
+    const provider = new ViteAPI(wsrpc, () => {
+      console.log("connected to provider");
+      setWSProvider((provider as unknown) as (typeof ViteAPI));
+    });
     const vbInstance = new Connector({ bridge: process.env.NEXT_PUBLIC_CONNECTOR });
     vbInstance.createSession().then(() => connectURISet(vbInstance.uri));
     vbInstance.on('connect', (e: Error | null, payload: any | null) => {
@@ -85,6 +41,7 @@ const Home: NextPage = () => {
       setAccounts(accounts)
       // Can insert onConnect logic here
       setVBInstanceG(vbInstance);
+      console.log(vbInstance);
     });
     vbInstance.on('disconnect', () => {
       setVBInstanceG(undefined);
@@ -92,24 +49,47 @@ const Home: NextPage = () => {
     setVBInstanceG(vbInstance)
   }, [])
 
-  if (vbInstanceG === undefined) {
+  interface EventTarget {
+    value: string
+  }
+
+  interface InputEvent {
+    target: EventTarget
+  }
+
+
+  function handleContractInputChange(event: InputEvent) {
+    setContractAddress(event.target.value)
+  }
+
+  if (vbInstanceG === undefined || wsProvider === undefined) {
     return <div>Loading...</div>
+  }
+  else if (accounts.length == 0) {
+    return (
+      <div>
+        <div>Scan code with the VITE app</div>
+        <QRCode value={connectURI} />
+      </div>
+    )
+  }
+  else if (contractAddress === "" || !contractSet) {
+    return (
+      <div>
+        <input type="text" value={contractAddress} onChange={handleContractInputChange} />
+        <button onClick={() => setContractSet(true)}>Submit</button>
+      </div>
+    )
+  }
+  else if (pageNav == "pool") {
+    return (
+      <Pool vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} />
+    )
   }
   else {
     return (
-      <div>
-        <button onClick={openModal}>Open Modal</button>
-        <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={closeModal}>
-          <button onClick={closeModal}>close</button>
-          <QRCode value={connectURI} />
-        </Modal>
-        <button onClick={sendTx}>Send TX</button>
-      </div>
+      <Swap vbInstance={vbInstanceG} accounts={accounts} />
     )
-
-
   }
 }
 
