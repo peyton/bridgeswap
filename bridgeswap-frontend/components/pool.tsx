@@ -206,8 +206,7 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
       </div>
     )
   }
-  // Next - user views current deposit amount for each, can deposit more as well.
-  // As well - user can explicitly add/remove liquidity  
+  // Next - user can add/remove liquidity
   else {
 
     return (

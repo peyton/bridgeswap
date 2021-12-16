@@ -1,8 +1,8 @@
 import Connector from '@vite/connector';
 import { constant, abi, accountBlock, utils, ViteAPI } from '@vite/vitejs';
 import { contract_abi, contract_code } from '../utils/abi'
-// Only use this for anything related to accountBlocks; otherwise use the websockets provider
 
+// send transaction via vite-connect
 export async function sendTransactionAsync(accounts, vbInstanceG: Connector, ...args: any): Promise<any> {
   console.log("Sending transaction");
   console.log("instance", vbInstanceG)
@@ -19,6 +19,7 @@ export async function sendTransactionAsync(accounts, vbInstanceG: Connector, ...
   });
 }
 
+// Call a contract with an on-chain function
 export async function callOnChain(accounts, provider, vbInstance, method, params = [], tokenId = "tti_5649544520544f4b454e6e40", amount = '0') {
   console.log(method, params, tokenId, amount)
   const block = accountBlock.createAccountBlock('callContract', {
@@ -38,7 +39,7 @@ export async function callOnChain(accounts, provider, vbInstance, method, params
   return r;
 }
 
-// Calls function from the pair contract
+// Call a contract with an off-chain function
 export async function callOffChain(accounts, provider, method, params = []) {
   console.log(accounts, provider, method, params);
   const block = accountBlock.createAccountBlock('callContract', {
