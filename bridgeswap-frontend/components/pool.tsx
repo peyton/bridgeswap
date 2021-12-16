@@ -3,11 +3,14 @@ import { constant, abi, accountBlock, utils, ViteAPI } from '@vite/vitejs';
 import { useState, useEffect } from 'react';
 import { Typeahead } from 'react-bootstrap-typeahead'
 import 'react-bootstrap-typeahead/css/Typeahead.css'
+import contract_abi from '../utils/abi'
+import sendTransactionAsync from '../utils/transactions'
 
 interface PoolProps {
   vbInstance: Connector;
   provider: typeof ViteAPI;
   accounts: string[];
+  contractAddress: string
 }
 
 interface TokenInfo {
@@ -28,11 +31,14 @@ interface TokenInfoListResponse {
   totalCount: number
 }
 
-const Pool = ({ vbInstance, provider, accounts }: PoolProps) => {
+const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) => {
 
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>();
   const [tokenA, setTokenA] = useState<string[]>([]);
   const [tokenB, setTokenB] = useState<string[]>([]);
+  const [tokensChosen, setTokensChosen] = useState(false);
+  const [bankBalanceA, setBankBalanceA] = useState<number | undefined>(undefined);
+  const [bankBalanceB, setBankBalanceB] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const getalltokens = async () => {
@@ -56,12 +62,36 @@ const Pool = ({ vbInstance, provider, accounts }: PoolProps) => {
     })
   }, [])
 
+  const chooseTokens = () => {
+    if (tokenA.length > 0 && tokenB.length > 0 && tokenA[0] !== tokenB[0] && tokenA[0].length > 0 && tokenB[0].length > 0) {
+      setTokensChosen(true);
+    } // TODO: Don't fail silently here
+
+    console.log(tokenMap)
+
+    // Replace the below with a simple offchain provider.request
+
+    let block = accountBlock.createAccountBlock('callContract', {
+      address: accounts[0],
+      abi: contract_abi,
+      toAddress: contractAddress,
+      methodName: "getBalanceAddressToken",
+      params: [accounts[0], tokenMap.get(tokenA[0]).tokenId]
+    })
+
+    sendTransactionAsync(vbInstance, {
+      block: block.accountBlock
+    }).then((result) => console.log(result));
+
+
+
+  }
 
   if (tokenMap === undefined || tokenMap.size == 0) {
     return <div>Loading tokens...</div>
   }
   // First, user selects token pair. Then they can deposit tokens, viewing their bank balance. Then they can add liquidity.  
-  else if (tokenA.length == 0 || tokenB.length == 0) {
+  else if (tokenA.length == 0 || tokenB.length == 0 || !tokensChosen) {
     return (
       <div>
         <h1>Choose Pairs</h1>
@@ -81,10 +111,12 @@ const Pool = ({ vbInstance, provider, accounts }: PoolProps) => {
           selected={tokenB}
           placeholder="Select second token"
         />
+        <button onClick={chooseTokens}>Choose</button>
       </div>
     )
   }
-  // TODO - disallow choosing the same token twice
+  // Next - user views current deposit amount for each, can deposit more as well.
+  // As well - user can explicitly add/remove liquidity  
   else {
 
     return (

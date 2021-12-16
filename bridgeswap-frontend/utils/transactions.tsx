@@ -14,7 +14,7 @@ async function sendTransactionAsync(vbInstanceG: Connector, ...args: any): Promi
     });
 
     vbInstanceG.sendCustomRequest({ method: 'vite_signAndSendTx', params: args }).then((r: any) => {
-      vbInstanceG.updateSession();
+      //      vbInstanceG.updateSession();
       res(r);
     }).catch((e: any) => {
       rej(e);

@@ -111,7 +111,6 @@ contract SinglePair {
         require(msg.tokenid == tokenA); // TODO: generalize
 
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
-        require(height() <= deadline);
 
         // TODO: pay liquidity providers
 
@@ -141,7 +140,6 @@ contract SinglePair {
         require(msg.tokenid == tokenA); // TODO: generalize
 
         require(msg.tokenid == tokenA || msg.tokenid == tokenB);
-        require(height() <= deadline);
 
         // TODO: pay liquidity providers
 
