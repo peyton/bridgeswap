@@ -423,6 +423,70 @@ describe('bridgeswap tests', () => {
       expect(pairSupply![1]).to.equal('39999')
     }).timeout(60000)
 
-    it('liquidity pool swaps unbalanced deposit on addLiquiditySwap')
+    it('liquidity pool swaps unbalanced deposit on addLiquiditySwap', async () => {
+      const { contract } = await _deployContractAndAddPairs()
+      async function _call(methodName: string, params: any[], props: CallProps) {
+        return contract.awaitCall(
+          firstAccount.address,
+          firstAccount.privateKey,
+          methodName,
+          params,
+          props
+        )
+      }
+
+      await _call('deposit', [], { tokenId: tokenIdA, amount: '20000' })
+      await _call('deposit', [], { tokenId: tokenIdB, amount: '50000' })
+      await mine(provider)
+      await mine(provider)
+
+      await _call(
+        'addLiquidity',
+        [
+          tokenIdA,
+          '10000',
+          tokenIdB,
+          '20000',
+          '3924849'
+        ],
+        {}
+      ) // 1:2 ratio
+
+      await _call(
+        'addLiquiditySwap',
+        [
+          tokenIdA,
+          '10000',
+          tokenIdB,
+          '30000',
+          '3924849'
+        ],
+        {}
+      )
+      
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdA])
+      expect(balanceA).to.not.be.null
+      expect(balanceA![0]).equal('0')
+      const balanceB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
+      expect(balanceB).to.not.be.null
+      expect(balanceB![0]).equal('0')
+
+      const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
+      expect(pairSupply).to.not.be.null
+      expect(pairSupply![0]).to.equal('20000')
+      expect(pairSupply![1]).to.equal('50000')
+
+      const liquidityBalance = await contract.callOffChain('getLiquidityPoolBalance', [firstAccount.address, tokenIdA, tokenIdB])
+      expect(liquidityBalance).to.not.be.null
+      expect(liquidityBalance![0]).to.equal('24985')
+    }).timeout(60000)
   })
 })
