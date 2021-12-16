@@ -29,7 +29,7 @@
   },
   "scripts": {
       "accounts": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && ./node_modules/.bin/ts-node scripts/accounts.ts",
-      "stakeContract": "ts-node scripts/stakeContract.ts",
+      "stakeContract": "VITE_CONTRACTS_ROOT=\"$PWD/contracts\" ts-node scripts/stakeContract.ts",
     "lint": "yarn prettier ./**/*.ts --check",
     "lint:fix": "yarn prettier ./**/*.ts --write",
     "clean": "rimraf ./build/",
