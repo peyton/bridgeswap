@@ -135,7 +135,7 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
       return window.alert('Deposit more tokens - each must have a nonzero balance')
     }
     const tokenIds = [tokenMap.get(tokenA[0]).tokenId, tokenMap.get(tokenB[0]).tokenId]
-    callOnChain(accounts, provider, vbInstance, "addLiquidity", [tokenIds[0], bankBalanceA.toString(), tokenIds[1], bankBalanceB.toString(), "10000"]).then((result) => {
+    callOnChain(accounts, provider, vbInstance, "addLiquiditySwap", [tokenIds[0], bankBalanceA.toString(), tokenIds[1], bankBalanceB.toString(), "10000"]).then((result) => {
       updateLiquidityStakeAB();
     });
   }
