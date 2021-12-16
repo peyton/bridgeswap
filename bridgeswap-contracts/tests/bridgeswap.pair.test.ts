@@ -120,10 +120,121 @@ describe('bridgeswap tests', () => {
       return { contract }
     }
 
-    it('owner can create pair')
+    it('owner can create pair', async () => {
+      const { contract } = await _deployContract()
+      await contract.awaitCall(
+        firstAccount.address,
+        firstAccount.privateKey,
+        'addPair',
+        [tokenIdA, tokenIdB],
+        {}
+      )
 
-    it('cannot create self pair')
+      await mine(provider)
+      await mine(provider)
+      const pairCountResponse = await contract.callOffChain('getPairCount', [])
+      expect(pairCountResponse).to.be.not.null
+      expect(pairCountResponse![0]).equal('1')
 
-    it('cannot create duplicate pair')
+      await mine(provider)
+      await mine(provider)
+      const pairResponse = await contract.callOffChain('getPairAtIndex', ['0'])
+      expect(pairResponse).to.be.not.null
+      const tokenIds = new Set([pairResponse![0], pairResponse![1]])
+      expect(tokenIds).to.include(tokenIdA)
+      expect(tokenIds).to.include(tokenIdB)
+    })
+
+    it('owner can create 2 pairs', async () => {
+      const { contract } = await _deployContract()
+      await contract.awaitCall(
+        firstAccount.address,
+        firstAccount.privateKey,
+        'addPair',
+        [tokenIdA, tokenIdB],
+        {}
+      )
+      await contract.awaitCall(
+        firstAccount.address,
+        firstAccount.privateKey,
+        'addPair',
+        [tokenIdA, tokenIdC],
+        {}
+      )
+
+      await mine(provider)
+      await mine(provider)
+      const pairCountResponse = await contract.callOffChain('getPairCount', [])
+      expect(pairCountResponse).to.be.not.null
+      expect(pairCountResponse![0]).equal('2')
+
+      await mine(provider)
+      await mine(provider)
+      const pairResponse0 = await contract.callOffChain('getPairAtIndex', ['0'])
+      expect(pairResponse0).to.be.not.null
+      const tokenIds0 = new Set([pairResponse0![0], pairResponse0![1]])
+      expect(tokenIds0).to.include(tokenIdA)
+      expect(tokenIds0).to.include(tokenIdB)
+
+      await mine(provider)
+      await mine(provider)
+      const pairResponse1 = await contract.callOffChain('getPairAtIndex', ['1'])
+      expect(pairResponse1).to.be.not.null
+      const tokenIds1 = new Set([pairResponse1![0], pairResponse1![1]])
+      expect(tokenIds1).to.include(tokenIdA)
+      expect(tokenIds1).to.include(tokenIdC)
+    })
+
+    it('cannot create self pair', async () => {
+      const { contract } = await _deployContract()
+      await contract.awaitCall(
+        firstAccount.address,
+        firstAccount.privateKey,
+        'addPair',
+        [tokenIdA, tokenIdA],
+        {}
+      )
+
+      await mine(provider)
+      await mine(provider)
+      const pairCountResponse = await contract.callOffChain('getPairCount', [])
+      expect(pairCountResponse).to.be.not.null
+      expect(pairCountResponse![0]).equal('0')
+    })
+
+    it('cannot create duplicate pair', async () => {
+      const { contract } = await _deployContract()
+      await contract.awaitCall(
+        firstAccount.address,
+        firstAccount.privateKey,
+        'addPair',
+        [tokenIdA, tokenIdB],
+        {}
+      )
+
+      await contract.awaitCall(
+        firstAccount.address,
+        firstAccount.privateKey,
+        'addPair',
+        [tokenIdB, tokenIdA],
+        {}
+      )
+
+      await mine(provider)
+      await mine(provider)
+      const pairCountResponse = await contract.callOffChain('getPairCount', [])
+      expect(pairCountResponse).to.be.not.null
+      expect(pairCountResponse![0]).equal('1')
+
+      await mine(provider)
+      await mine(provider)
+      const pairResponse = await contract.callOffChain('getPairAtIndex', ['0'])
+      expect(pairResponse).to.be.not.null
+      const tokenIds = new Set([pairResponse![0], pairResponse![1]])
+      expect(tokenIds).to.include(tokenIdA)
+      expect(tokenIds).to.include(tokenIdB)
+    })
   })
+
+  it('nonowner cannot create pair')
 })
