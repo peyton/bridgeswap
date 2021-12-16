@@ -45,6 +45,7 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
   const [tokensChosen, setTokensChosen] = useState(false);
   const [bankBalanceA, setBankBalanceA] = useState<number | undefined>(undefined);
   const [bankBalanceB, setBankBalanceB] = useState<number | undefined>(undefined);
+  const [liquidity, setLiquidity] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const getalltokens = async () => {
@@ -71,6 +72,12 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
   function updateBalancesAB() {
     callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenA[0]).tokenId]).then(setBankBalanceA);
     callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenB[0]).tokenId]).then(setBankBalanceB);
+    updateLiquidityStakeAB()
+  }
+
+  function updateLiquidityStakeAB() {
+    const tokenIds = [tokenMap.get(tokenA[0]).tokenId, tokenMap.get(tokenB[0]).tokenId]
+    callOffChain(accounts, provider, "getLiquidityPoolBalance", [accounts[0], tokenIds[0], tokenIds[1]]).then(setLiquidity);
   }
 
   const chooseTokens = async () => {
@@ -79,6 +86,7 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
     } // TODO: Don't fail silently here
 
     updateBalancesAB();
+    updateLiquidityStakeAB();
   }
 
   function deposit(token, amount: number | string | BigNumber) {
@@ -102,6 +110,17 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
       tokenInfo.tokenId,
       amountInTokenUnits.toString()
     ).then((result) => console.log(result)).catch((err) => console.log(err));
+  }
+
+  function addLiquidity() {
+    updateBalancesAB();
+    if (bankBalanceA == 0 || bankBalanceB == 0) {
+      return window.alert('Deposit more tokens - each must have a nonzero balance')
+    }
+    const tokenIds = [tokenMap.get(tokenA[0]).tokenId, tokenMap.get(tokenB[0]).tokenId]
+    callOnChain(accounts, provider, vbInstance, "addLiquidity", [tokenIds[0], bankBalanceA.toString(), tokenIds[1], bankBalanceB.toString(), "10000"]).then((result) => {
+      updateLiquidityStakeAB();
+    });
   }
 
   if (tokenMap === undefined || tokenMap.size == 0) {
@@ -148,6 +167,12 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
           <h2>{tokenB[0]}</h2>
           <p>Balance: {bankBalanceB}</p>
           <button onClick={() => deposit(tokenB[0], 10)}>Deposit 10 {tokenB[0]}</button>
+        </div>
+        <button onClick={updateBalancesAB}>Update Balances</button>
+        <div>
+          <h2>Add Liquidity from balance</h2>
+          <p>Liquidity balance: {liquidity === undefined ? "loading..." : liquidity}</p>
+          <button onClick={addLiquidity}>Add balance to liquidity</button>
         </div>
       </div>
     )

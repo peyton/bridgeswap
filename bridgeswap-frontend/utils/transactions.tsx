@@ -19,12 +19,13 @@ export async function sendTransactionAsync(accounts, vbInstanceG: Connector, ...
   });
 }
 
-export async function callOnChain(accounts, provider, vbInstance, method, params, tokenId, amount) {
+export async function callOnChain(accounts, provider, vbInstance, method, params = [], tokenId = "tti_5649544520544f4b454e6e40", amount = 0) {
+  console.log(params)
   const block = accountBlock.createAccountBlock('callContract', {
     address: accounts[0],
     abi: contract_abi,
     toAddress: contract_address,
-    methodName: "deposit",
+    methodName: method,
     params: params,
     tokenId: tokenId,
     amount: amount
@@ -38,7 +39,7 @@ export async function callOnChain(accounts, provider, vbInstance, method, params
 }
 
 // Calls function from the pair contract
-export async function callOffChain(accounts, provider, method, params) {
+export async function callOffChain(accounts, provider, method, params = []) {
   console.log(accounts, provider, method, params);
   const block = accountBlock.createAccountBlock('callContract', {
     address: accounts[0],
