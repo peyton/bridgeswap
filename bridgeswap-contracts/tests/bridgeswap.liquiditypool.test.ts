@@ -296,9 +296,60 @@ describe('bridgeswap tests', () => {
       expect(finalBalanceB).to.equal(initialBalanceB)
     }).timeout(60000)
 
-    it('add liquidity to existing pool')
+    it('add liquidity to existing pool', async () => {
+      const { contract } = await _deployContractAndAddPairs()
+      async function _call(methodName: string, params: any[], props: CallProps) {
+        return contract.awaitCall(
+          firstAccount.address,
+          firstAccount.privateKey,
+          methodName,
+          params,
+          props
+        )
+      }
 
-    it('liquidity pool swaps unbalanced deposit on addLiquidity')
+      await _call('deposit', [], { tokenId: tokenIdA, amount: '2' })
+      await _call('deposit', [], { tokenId: tokenIdB, amount: '5' })
+      await mine(provider)
+      await mine(provider)
+
+      await _call(
+        'addLiquidity',
+        [
+          tokenIdA,
+          '1',
+          tokenIdB,
+          '2',
+          '3924849'
+        ],
+        {}
+      ) // 1:2 ratio
+
+      await _call(
+        'addLiquidity',
+        [
+          tokenIdA,
+          '1',
+          tokenIdB,
+          '3',
+          '3924849'
+        ],
+        {}
+      ) // should still be 1:2 ratio
+      
+      await mine(provider)
+      await mine(provider)
+      const balanceA = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
+      expect(balanceA).to.not.be.null
+      expect(balanceA![0]).equal('1')
+
+      const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
+      expect(pairSupply).to.not.be.null
+      expect(pairSupply![0]).to.equal('2')
+      expect(pairSupply![1]).to.equal('4')
+    }).timeout(60000)
+
+    it('liquidity pool swaps unbalanced deposit on addLiquiditySwap')
 
 
   })
