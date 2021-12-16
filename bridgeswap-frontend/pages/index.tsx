@@ -78,12 +78,13 @@ const Home: NextPage = () => {
   }
   else if (pageNav == "pool") {
     return (
-      <Pool vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} />
+      <Pool vbInstance={vbInstanceG} accounts={accounts} provider={wsProvider} contractAddress={contractAddress} pageNav={() => setPageNav("swap")} />
     )
   }
   else {
     return (
-      <Swap vbInstance={vbInstanceG} accounts={accounts} />
+      <p>Swap</p>
+      //      <Swap vbInstance={vbInstanceG} accounts={accounts} />
     )
   }
 }
