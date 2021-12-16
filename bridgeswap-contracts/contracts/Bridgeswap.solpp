@@ -198,6 +198,8 @@ contract Bridgeswap {
     uint256 _deadline
   ) {
     require(height() <= _deadline);
+    require(_amountTokenA > 0);
+    require(_maxTokenB > 0);
 
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
     Pair storage _pair = pairs[_tokenA][_tokenB];
@@ -221,6 +223,7 @@ contract Bridgeswap {
     } else {
       // Initial liquidity for pair.
       amountTokenB = min(_maxTokenB, holdingPool[msg.sender][_tokenBIn]);
+      require(_amountTokenA > 0 && amountTokenB > 0);
       if (_pair.tokenA == _tokenAIn) {
         liquidityAdded = _amountTokenA;
       } else {
@@ -319,6 +322,7 @@ contract Bridgeswap {
       _liquidityAdded = uint256(997) * _swappedLiquidity / uint256(1000) + _freeLiquidity;
     } else {
       // Initial liquidity for pair.
+      require(_amount1 > 0 && _amount2 > 0);
       _liquidityAdded = _amount1;
     }
 
