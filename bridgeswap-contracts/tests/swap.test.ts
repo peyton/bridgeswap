@@ -41,7 +41,6 @@ describe("swap test", function() {
   })
 
   function _balanceForTokenIdInBalances(balances: { balanceInfoMap: any }, tokenId: any): BigNumber {
-    // @ts-nocheck
     return new BigNumber(balances.balanceInfoMap[tokenId].balance)
   }
 
@@ -131,7 +130,7 @@ describe("swap test", function() {
     )
     await _call( 
       'addLiquidity', 
-      ['5000000000000000000', '10000000000000000000'], 
+      ['5000000000000000000', '10000000000000000000', '4924389293'], 
       {}
     )
     
@@ -190,7 +189,7 @@ describe("swap test", function() {
     )
     await _call( 
       'addLiquidity', 
-      ['5000000000000000000', '10000000000000000000'], 
+      ['5000000000000000000', '10000000000000000000', '1033289392'], 
       {}
     )
     const result = await _call(
@@ -242,7 +241,7 @@ describe("swap test", function() {
     )
     await _call( 
       'addLiquidity', 
-      ['5000000000000000000', '10000000000000000000'], 
+      ['5000000000000000000', '10000000000000000000', '48349843983'], 
       {}
     )
     
@@ -302,7 +301,7 @@ describe("swap test", function() {
     )
     await _call( 
       'addLiquidity', 
-      ['5000000000000000000', '10000000000000000000'], 
+      ['5000000000000000000', '10000000000000000000', '483984938'], 
       {}
     )
     
