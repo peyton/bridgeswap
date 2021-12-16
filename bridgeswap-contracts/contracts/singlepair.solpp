@@ -49,9 +49,10 @@ contract SinglePair {
     uint256 supplyA = 0;
     uint256 supplyB = 0;
 
-    mapping(address => uint256) poolBalanceA;
-    mapping(address => uint256) poolBalanceB;
+    uint256 totalPoolSupply = 0;
+    mapping(address => uint256) poolBalances;
 
+    // Holding pool
     struct BankAccount { // Idk if we need the struct here, maybe there is more we can pack in here in the future though
         mapping(tokenId => uint256) account;
     }
@@ -172,26 +173,29 @@ contract SinglePair {
 
     onMessage withdraw(uint256 amount, tokenId token) {
         require(token == tokenA || token == tokenB);
-        uint256 balance = bankAccounts[msg.sender].account[token];
-        require(amount <= balance);
-        bankAccounts[msg.sender].account[token] = balance - amount;
+        uint256 senderBalance = bankAccounts[msg.sender].account[token];
+        require(amount <= senderBalance);
+        bankAccounts[msg.sender].account[token] -= amount;
         msg.sender.transfer(token, amount);
         emit Withdrawal(msg.sender, token, amount);
     }
 
-    onMessage addLiquidity(uint256 amountTokenA, uint256 amountTokenB) {
-        // TODO: Need to implement swap fee 
+    //
+    onMessage addLiquidity(uint256 maxTokenA, uint256 maxTokenB, uint256 deadline) {
+        // TODO: Need to implement swap fee
+
+        require(height() <= deadline);
+
+        // Update bank balance 
         uint256 balanceA = bankAccounts[msg.sender].account[tokenA];
         uint256 balanceB = bankAccounts[msg.sender].account[tokenB];
-
         require((amountTokenA <= balanceA) && (amountTokenB <= balanceB));
-        // Update pool balances
+        bankAccounts[msg.sender].account[tokenA] -= amountTokenA;
+        bankAccounts[msg.sender].account[tokenB] -= amountTokenB;
+
+        // Mint pool tokens
         poolBalanceA[msg.sender] += amountTokenA;
         poolBalanceB[msg.sender] += amountTokenB;
-
-        // Remove amounts from bank balance
-        bankAccounts[msg.sender].account[tokenA] = balanceA - amountTokenA;
-        bankAccounts[msg.sender].account[tokenB] = balanceB - amountTokenB;
 
         // Increment overall supply
         supplyA += amountTokenA;
