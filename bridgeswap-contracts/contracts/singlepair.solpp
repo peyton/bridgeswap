@@ -58,11 +58,11 @@ contract SinglePair {
     }
 
     mapping(address => BankAccount) bankAccounts;
-    getter supportedTokens()returns (tokenId, tokenId) {
+    getter supportedTokens() returns (tokenId, tokenId) {
         return (tokenA, tokenB);
     }
 
-    getter getPairSupply()returns (uint256, uint256) {
+    getter getPairSupply() returns (uint256, uint256) {
         return (supplyA, supplyB);
     }
 

@@ -90,7 +90,7 @@ describe("liquidity pool test", () => {
     await contract.awaitCall(account.address, account.privateKey, 'deposit', [], { tokenId: tokenIdB, amount: '1' });
     await mine(provider)
     await mine(provider)
-    await contract.awaitCall(account.address, account.privateKey, 'addLiquidity', [1, 1], {});
+    await contract.awaitCall(account.address, account.privateKey, 'addLiquidity', ['1', '1', '3920392308'], {});
     await mine(provider)
     await mine(provider)
     let banksupply = await contract.callOffChain('getBalanceAddressToken', [account.address, tokenIdA]);
@@ -101,7 +101,7 @@ describe("liquidity pool test", () => {
     expect(pairsupply![0]).equal('1');
     expect(pairsupply![1]).equal('1');
 
-    await contract.awaitCall(account.address, account.privateKey, 'removeLiquidity', [1, 1], {});
+    await contract.awaitCall(account.address, account.privateKey, 'removeLiquidity', ['1', '1', '1', '3920392308'], {});
     await mine(provider)
     await mine(provider)
 
