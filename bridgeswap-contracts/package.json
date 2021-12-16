@@ -26,7 +26,8 @@
     "typescript": "^4.5.4"
   },
   "scripts": {
-    "accounts": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && ./node_modules/.bin/ts-node scripts/accounts.ts",
+      "accounts": "export VITE_CONTRACTS_ROOT=\"$PWD/contracts\" && ./node_modules/.bin/ts-node scripts/accounts.ts",
+      "stakeContract": "ts-node scripts/stakeContract.ts",
     "lint": "yarn prettier ./**/*.ts --check",
     "lint:fix": "yarn prettier ./**/*.ts --write",
     "clean": "rimraf ./build/",
