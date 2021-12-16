@@ -96,8 +96,12 @@ async function mintToken() {
   let pairs = await thiscontract.callOffChain("getPairCount", [])
   console.log("Pairs before:", pairs)
   console.log("Initializing")
-  const initializeBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_80f3751485e4e83456059473", "tti_687d8a93915393b219212c73"], {})
-  await awaitReceived(initializeBlock.hash!);
+  const firstPairBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_80f3751485e4e83456059473", "tti_687d8a93915393b219212c73"], {})
+  await awaitReceived(firstPairBlock.hash!);
+  const secondPairBlock = await thiscontract.call(address, privateKey, "addPair", ['tti_5649544520544f4b454e6e40', "tti_687d8a93915393b219212c73"], {})
+  await awaitReceived(secondPairBlock.hash!);
+  const thirdPairBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_80f3751485e4e83456059473", 'tti_5649544520544f4b454e6e40'], {})
+  await awaitReceived(thirdPairBlock.hash!);
   console.log("Post add pair")
   pairs = await thiscontract.callOffChain("getPairCount", [])
   console.log("Pairs after:", pairs)
