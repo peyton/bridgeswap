@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: Unlicense
+pragma soliditypp >=0.4.3;
+
+contract Bridgeswap {
+
+  // --------------------
+  // Events
+  // --------------------
+
+  event ChangeOwner(
+    address indexed newOwner
+  );
+
+  // --------------------
+  // State
+  // --------------------
+
+  address public owner;
+
+  // --------------------
+  // 
+  // --------------------
+
+  constructor() public {
+    owner = msg.sender;
+  }
+
+  // --------------------
+  // Owned
+  // --------------------
+
+  onMessage changeOwner(address _newOwner) {
+      require(msg.sender == owner && _newOwner != owner);
+      owner = _newOwner;
+      emit ChangeOwner(_newOwner);
+  }
+}

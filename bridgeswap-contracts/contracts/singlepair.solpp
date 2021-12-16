@@ -12,6 +12,9 @@ contract SinglePair {
         tokenId indexed tokenBId,
         uint256 tokenBAmount
     );
+    event ChangeOwner(
+        address indexed newOwner
+    );
     event Deposit(
         address indexed provider,
         tokenId indexed tokenid,
@@ -37,6 +40,7 @@ contract SinglePair {
         uint256 amounta
     );
 
+    address public owner;
     tokenId constant ZERO_TOKEN_ID = tokenId("tti_000000000000000000004cfd");
 
     bytes32 name = "Bridgeswap SinglePair";
@@ -55,6 +59,10 @@ contract SinglePair {
     // Holding pool
     struct BankAccount { // Idk if we need the struct here, maybe there is more we can pack in here in the future though
         mapping(tokenId => uint256) account;
+    }
+
+    constructor() public {
+        owner = msg.sender;
     }
 
     mapping(address => BankAccount) bankAccounts;
@@ -262,6 +270,16 @@ contract SinglePair {
             tokenB,
             amountTokenB
         );
+    }
+
+    // --------------------
+    // Owned
+    // --------------------
+
+    onMessage changeOwner(address newOwner) {
+        require(msg.sender == owner && newOwner != owner);
+        owner = newOwner;
+        emit ChangeOwner(newOwner);
     }
 
     // --------------------
