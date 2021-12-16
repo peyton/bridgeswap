@@ -120,16 +120,10 @@ describe('bridgeswap tests', () => {
       return { contract }
     }
 
-    it('owner can create pair', async () => {
-      const { contract } = await _deployContract()
-
-      
-    })
+    it('owner can create pair')
 
     it('cannot create self pair')
 
-    it('cannot create duplicate pair', async () => {
-      const { contract } = await _deployContract()
-    })
+    it('cannot create duplicate pair')
   })
 })
