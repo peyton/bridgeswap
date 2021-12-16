@@ -138,6 +138,18 @@ contract Bridgeswap {
     return holdingPool[_address][_token];
   }
 
+  getter getPairSupply(tokenId _tokenAIn, tokenId _tokenBIn) view returns (uint256, uint256) {
+    (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
+    Pair storage _pair = pairs[_tokenA][_tokenB];
+    require(_pair.initialized);
+
+    if (_pair.tokenA == _tokenAIn) {
+      return (_pair.supplyA, _pair.supplyB);
+    } else {
+      return (_pair.supplyB, _pair.supplyA);
+    }
+  }
+
   onMessage deposit() payable {
     require(msg.amount > 0);
     holdingPool[msg.sender][msg.tokenid] += msg.amount;
@@ -239,7 +251,7 @@ contract Bridgeswap {
     );
   }
 
-  // @notice Withdraw tokens at current ratio.
+  // @notice Remove and withdraw tokens at current ratio.
   // @param _amount Amount of liquidity to remove.
   // @param _tokenA The first token in the pair.
   // @param _minTokenA Minimum number of token A removed.

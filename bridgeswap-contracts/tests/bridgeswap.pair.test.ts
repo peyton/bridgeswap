@@ -234,7 +234,8 @@ describe('bridgeswap tests', () => {
       expect(tokenIds).to.include(tokenIdA)
       expect(tokenIds).to.include(tokenIdB)
     })
+
+    it('nonowner cannot create pair')
   })
 
-  it('nonowner cannot create pair')
 })
