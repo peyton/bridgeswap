@@ -391,14 +391,18 @@ describe('bridgeswap tests', () => {
         'addLiquidity',
         [
           tokenIdB,
-          '20001',
+          '19999',
           tokenIdA,
-          '30000',
+          '10000',
           '3924849'
         ],
         {}
-      ) // should still be 1:2 ratio
+      ) // should still be ~1:2 ratio
       
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
+      await mine(provider)
       await mine(provider)
       await mine(provider)
       await mine(provider)
@@ -412,12 +416,12 @@ describe('bridgeswap tests', () => {
       expect(balanceA![0]).equal('0')
       const balanceB = await contract.callOffChain('getHoldingPoolBalance', [firstAccount.address, tokenIdB])
       expect(balanceB).to.not.be.null
-      expect(balanceB![0]).equal('9999')
+      expect(balanceB![0]).equal('10001')
 
       const pairSupply = await contract.callOffChain('getPairSupply', [tokenIdA, tokenIdB])
       expect(pairSupply).to.not.be.null
       expect(pairSupply![0]).to.equal('20000')
-      expect(pairSupply![1]).to.equal('40001')
+      expect(pairSupply![1]).to.equal('39999')
     }).timeout(60000)
 
     it('liquidity pool swaps unbalanced deposit on addLiquiditySwap')
