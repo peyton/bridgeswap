@@ -110,6 +110,16 @@ contract Bridgeswap {
     ));
   }
 
+  getter getPairCount() view returns (uint256) {
+    return pairFlags.length;
+  }
+
+  getter getPairAtIndex(uint256 _index) view returns (tokenId, tokenId) {
+    require(_index < pairFlags.length);
+    PairFlag storage _pairFlag = pairFlags[_index];
+    return (_pairFlag.tokenA, _pairFlag.tokenB);
+  }
+
   function canonicalizePair(tokenId _tokenA, tokenId _tokenB) private pure returns (tokenId, tokenId) {
     require(_tokenA != _tokenB);
     
