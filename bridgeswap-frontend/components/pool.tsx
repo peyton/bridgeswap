@@ -37,6 +37,10 @@ function _tokenAmount(amount: number | string | BigNumber, tokenInfo: TokenInfo)
   return (new BigNumber(amount)).shiftedBy(tokenInfo.decimals)
 }
 
+function _displayAmount(tokenAmount: number | string | BigNumber, tokenInfo: TokenInfo) {
+  return (new BigNumber(tokenAmount)).shiftedBy(-tokenInfo.decimals)
+}
+
 const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) => {
 
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>();
@@ -87,6 +91,19 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
 
     updateBalancesAB();
     updateLiquidityStakeAB();
+  }
+
+  function _stringForBalance(balance: string | number | BigNumber, token: string) {
+    if (!tokenMap) {
+      console.error('Token map not loaded')
+      return ''
+    }
+    const tokenInfo: TokenInfo = tokenMap.get(token)!
+    if (!tokenInfo) {
+      console.error(`No info for token ${token}`)
+      return ''
+    }
+    return _displayAmount(balance, tokenInfo).toString()
   }
 
   function deposit(token, amount: number | string | BigNumber) {
@@ -174,13 +191,13 @@ const Pool = ({ vbInstance, provider, accounts, contractAddress }: PoolProps) =>
         <h1>Deposit Pairs</h1>
         <div>
           <h2>{tokenA[0]}</h2>
-          <p>Balance: {bankBalanceA}</p>
+          <p>Balance: {_stringForBalance(bankBalanceA, tokenA[0])}</p>
           <button onClick={() => deposit(tokenA[0], 10)}>Deposit 10 {tokenA[0]}</button>
           <button onClick={() => withdraw(tokenA[0], 10)}>Withdraw 10 {tokenA[0]}</button>
         </div>
         <div>
           <h2>{tokenB[0]}</h2>
-          <p>Balance: {bankBalanceB}</p>
+          <p>Balance: {_stringForBalance(bankBalanceB, tokenB[0])}</p>
           <button onClick={() => deposit(tokenB[0], 10)}>Deposit 10 {tokenB[0]}</button>
           <button onClick={() => withdraw(tokenB[0], 10)}>Withdraw 10 {tokenB[0]}</button>
         </div>
