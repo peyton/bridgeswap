@@ -63,6 +63,7 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
       while (total_list.length < total) {
         const s: TokenInfoListResponse = await provider.request('contract_getTokenInfoList', index, 10);
         total_list = total_list.concat(s.tokenInfoList);
+        index = index + 1;
       }
       let token_map = new Map<string, TokenInfo>();
       for (let item of total_list) {
@@ -71,11 +72,13 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
       return token_map
     }
     getalltokens().then((m: Map<string, TokenInfo>) => {
+      console.log(m)
       setTokenMap(m);
     })
   }, [])
 
   function updateBalancesAB() {
+    console.log(tokenA, tokenB)
     callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenA[0]).tokenId]).then(setBankBalanceA);
     callOffChain(accounts, provider, "getHoldingPoolBalance", [accounts[0], tokenMap.get(tokenB[0]).tokenId]).then(setBankBalanceB);
     updateLiquidityStakeAB()
@@ -194,6 +197,7 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
           selected={tokenA}
           placeholder="Select first token"
         />
+        <br />
         <Typeahead
           id="token-two"
           labelKey="Token Two"
@@ -202,6 +206,7 @@ const Pool = ({ pageNav, vbInstance, provider, accounts, contractAddress }: Pool
           selected={tokenB}
           placeholder="Select second token"
         />
+        <br />
         <button onClick={chooseTokens}>Choose</button>
       </div>
     )

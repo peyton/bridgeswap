@@ -29,7 +29,8 @@ function sleep(ms: number) {
 }
 
 
-const wsrpc = new WS_RPC('ws://localhost:41420');
+//const wsrpc = new WS_RPC('ws://localhost:41420'); // Local net
+const wsrpc = new WS_RPC('wss://buidl.vite.net/gvite/ws') // Test net
 console.log(wsrpc)
 const provider = new ViteAPI(wsrpc, () => { console.log("connect") });
 
@@ -82,7 +83,7 @@ async function mintToken() {
     address,
     beneficiaryAddress: thiscontract._address,
     //amount: '1000000000000000000000' // The minimum staking amount is 134 VITE
-    amount: "5134000000000000000000"
+    amount: "3134000000000000000000"
   });
   myAccountBlock.setProvider(provider).setPrivateKey(privateKey);
 
@@ -96,11 +97,11 @@ async function mintToken() {
   let pairs = await thiscontract.callOffChain("getPairCount", [])
   console.log("Pairs before:", pairs)
   console.log("Initializing")
-  const firstPairBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_80f3751485e4e83456059473", "tti_687d8a93915393b219212c73"], {})
+  const firstPairBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_2ff7518e3ee12eb611f895fb", "tti_973afc9ffd18c4679de42e93"], {})
   await awaitReceived(firstPairBlock.hash!);
-  const secondPairBlock = await thiscontract.call(address, privateKey, "addPair", ['tti_5649544520544f4b454e6e40', "tti_687d8a93915393b219212c73"], {})
+  const secondPairBlock = await thiscontract.call(address, privateKey, "addPair", ['tti_5649544520544f4b454e6e40', "tti_973afc9ffd18c4679de42e93"], {})
   await awaitReceived(secondPairBlock.hash!);
-  const thirdPairBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_80f3751485e4e83456059473", 'tti_5649544520544f4b454e6e40'], {})
+  const thirdPairBlock = await thiscontract.call(address, privateKey, "addPair", ["tti_2ff7518e3ee12eb611f895fb", 'tti_5649544520544f4b454e6e40'], {})
   await awaitReceived(thirdPairBlock.hash!);
   console.log("Post add pair")
   pairs = await thiscontract.callOffChain("getPairCount", [])

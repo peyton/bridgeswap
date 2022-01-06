@@ -23,7 +23,7 @@ const Home: NextPage = () => {
   const [wsProvider, setWSProvider] = useState<typeof ViteAPI | undefined>(undefined);
 
   useEffect(() => {
-    const wsrpc = new WS_RPC('ws://localhost:41420');
+    const wsrpc = new WS_RPC(process.env.NEXT_PUBLIC_RPC);
     const provider = new ViteAPI(wsrpc, () => {
       console.log("connected to provider");
       setWSProvider((provider as unknown) as (typeof ViteAPI));
