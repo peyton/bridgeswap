@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Unlicense
-pragma soliditypp >=0.7.99 <0.9.0;
+pragma soliditypp 0.4.3;
 
 
 contract Bridgeswap {
@@ -76,7 +76,7 @@ contract Bridgeswap {
   // 
   // --------------------
 
-  constructor() {
+  constructor() public {
     owner = msg.sender;
   }
 
@@ -113,13 +113,12 @@ contract Bridgeswap {
   }
 
   // @notice Total number of pairs.
-  getter getPairCount() view returns (uint256) {
+  getter getPairCount() returns (uint256) {
     return pairFlags.length;
   }
 
   // @notice Retrieve the given pair as a tuple of tokenIds.
-  getter getPairAtIndex(uint256 _index) view returns (tokenId, tokenId) {
-    require(_index < pairFlags.length);
+  getter getPairAtIndex(uint256 _index) returns (tokenId, tokenId) {
     PairFlag storage _pairFlag = pairFlags[_index];
     return (_pairFlag.tokenA, _pairFlag.tokenB);
   }
@@ -140,15 +139,14 @@ contract Bridgeswap {
   // --------------------
 
   // @notice How many tokens of a given type are in the holding pool on behalf of this account.
-  getter getHoldingPoolBalance(address _address, tokenId _token) view returns (uint256) {
+  getter getHoldingPoolBalance(address _address, tokenId _token) returns (uint256) {
     return holdingPool[_address][_token];
   }
 
   // @notice Total supply of tokens for the given pair.
-  getter getPairSupply(tokenId _tokenAIn, tokenId _tokenBIn) view returns (uint256, uint256) {
+  getter getPairSupply(tokenId _tokenAIn, tokenId _tokenBIn) returns (uint256, uint256) {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
     Pair storage _pair = pairs[_tokenA][_tokenB];
-    require(_pair.initialized);
 
     if (_pair.tokenA == _tokenAIn) {
       return (_pair.supplyA, _pair.supplyB);
@@ -175,10 +173,9 @@ contract Bridgeswap {
 
   // @notice Get the amount of liquidity provided by address for a given pair.
   // @return The amount of liquidity provided.
-  getter getLiquidityPoolBalance(address _address, tokenId _tokenAIn, tokenId _tokenBIn) view returns (uint256) {
+  getter getLiquidityPoolBalance(address _address, tokenId _tokenAIn, tokenId _tokenBIn) returns (uint256) {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
     Pair storage _pair = pairs[_tokenA][_tokenB];
-    require(_pair.initialized);
     return _pair.poolBalances[_address];
   }
 
@@ -197,7 +194,7 @@ contract Bridgeswap {
     uint256 _maxTokenB, 
     uint256 _deadline
   ) {
-    require(height() <= _deadline);
+    require(accountheight() <= _deadline);
     require(_amountTokenA > 0);
     require(_maxTokenB > 0);
 
@@ -274,7 +271,7 @@ contract Bridgeswap {
     uint256 _amountTokenB, 
     uint256 _deadline
   ) {
-    require(height() <= _deadline);
+    require(accountheight() <= _deadline);
 
     // Update holding pool
     require(_amountTokenA <= holdingPool[msg.sender][_tokenAIn]);
@@ -354,7 +351,7 @@ contract Bridgeswap {
     uint256 _minTokenB,
     uint256 _deadline
   ) {
-    require(height() <= _deadline);
+    require(accountheight() <= _deadline);
 
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenAIn, _tokenBIn);
     Pair storage _pair = pairs[_tokenA][_tokenB];
@@ -399,11 +396,9 @@ contract Bridgeswap {
   // --------------------
 
   // @dev Query current buy rate for a given pair
-  getter getBuyRate(tokenId _tokenIdIn, uint256 _amountIn, tokenId _tokenIdOut) view returns (uint256) {
+  getter getBuyRate(tokenId _tokenIdIn, uint256 _amountIn, tokenId _tokenIdOut) returns (uint256) {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenIdIn, _tokenIdOut);
     Pair storage _pair = pairs[_tokenA][_tokenB];
-    require(_pair.initialized);
-    require(_pair.totalPoolSupply > 0);
     
     uint256 _inputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyA : _pair.supplyB;
     uint256 _outputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyB : _pair.supplyA;
@@ -411,11 +406,9 @@ contract Bridgeswap {
   }
 
   // @dev Query current sell rate for a given pair
-  getter getSellRate(tokenId _tokenIdOut, uint256 _amountOut, tokenId _tokenIdIn) view returns (uint256) {
+  getter getSellRate(tokenId _tokenIdOut, uint256 _amountOut, tokenId _tokenIdIn) returns (uint256) {
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(_tokenIdIn, _tokenIdOut);
     Pair storage _pair = pairs[_tokenA][_tokenB];
-    require(_pair.initialized);
-    require(_pair.totalPoolSupply > 0);
     
     uint256 _inputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyA : _pair.supplyB;
     uint256 _outputSupply = _tokenIdIn == _pair.tokenA ? _pair.supplyB : _pair.supplyA;
@@ -451,7 +444,7 @@ contract Bridgeswap {
   // @param _minOutput Minimum tokens bought; fails if not met.
   // @param _deadline Height after which this swap can no longer be executed
   onMessage swapInput(tokenId _outputTokenId, uint256 _minOutput, uint256 _deadline) payable {
-    require(height() <= _deadline);
+    require(accountheight() <= _deadline);
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(msg.tokenid, _outputTokenId);
     Pair storage _pair = pairs[_tokenA][_tokenB];
     require(_pair.initialized);
@@ -489,7 +482,7 @@ contract Bridgeswap {
   // @param _numBought Amount of tokens bought.
   // @param _deadline Height after which this swap can no longer be executed
   onMessage swapOutput(tokenId _outputTokenId, uint256 _numBought, uint256 _deadline) payable {
-    require(height() <= _deadline);
+    require(accountheight() <= _deadline);
     (tokenId _tokenA, tokenId _tokenB) = canonicalizePair(msg.tokenid, _outputTokenId);
     Pair storage _pair = pairs[_tokenA][_tokenB];
     require(_pair.initialized);
